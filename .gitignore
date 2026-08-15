@@ -1,0 +1,27 @@
+# Local corpus of prior-art repositories. Read as prior art, never vendored.
+# See docs/PRIOR_ART.md for the surveyed list.
+reference_repos/
+
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+.env
+.env.*
+!.env.example
+keys.json
+
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Runtime artifacts
+runs/
+artifacts/
+.craftonomous/
