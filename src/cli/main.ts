@@ -11,12 +11,18 @@ import {
   FAIR_PLAY,
   profileByName,
 } from '../perception/profile.js';
-import type { WorldView } from '../perception/world-view.js';
+import type { Session } from '../runtime/session.js';
 import { SkillRegistry } from '../skills/registry.js';
 import { ReliabilityTracker } from '../skills/reliability.js';
 import { OfflineInvoker, OfflineWorldView } from '../mcp/offline.js';
 import { createServer, startStdio } from '../mcp/server.js';
-import type { SkillInvoker } from '../mcp/tools.js';
+
+/**
+ * Re-exported for compatibility: `Session` now lives in `src/runtime/session.ts`
+ * beside the bootstrap that builds one, and is wider than the four members the
+ * CLI itself uses.
+ */
+export type { Session };
 
 export interface CliConfig {
   readonly host: string;
@@ -75,23 +81,6 @@ export function readConfig(env: NodeJS.ProcessEnv): CliConfig {
     auth: rawAuth,
     profile,
   };
-}
-
-/**
- * What a bootstrap module must hand back to put a live body behind the server.
- *
- * The live embodiment binding lives outside this module and is loaded by
- * specifier at runtime, never imported statically. That keeps the MCP surface
- * compiling and testable with no mineflayer in the picture, and it is the same
- * reason the CLI can honestly report an offline start instead of failing to
- * load.
- */
-export interface Session {
-  readonly registry: SkillRegistry;
-  readonly invoker: SkillInvoker;
-  readonly world: WorldView;
-  readonly reliability: ReliabilityTracker;
-  close?(): Promise<void>;
 }
 
 /** Where the CLI looks for a live body, unless told otherwise. */
@@ -174,12 +163,19 @@ export async function main(
 
   if (session) {
     note('  mode: LIVE, a Minecraft body is bound');
+    // Pass the session's real actuator and clock. The invoker substitutes its
+    // own ports over whatever context it is handed, so omitting these is not
+    // currently observable, but it would leave the MCP layer's default context
+    // holding offline actuators that silently perform nothing. Relying on one
+    // layer to paper over another's missing wiring is how a live bug waits.
     const { server } = createServer({
       registry: session.registry,
       invoker: session.invoker,
       world: session.world,
       reliability: session.reliability,
-      profile: config.profile,
+      profile: session.gate.profile,
+      act: session.act,
+      clock: session.clock,
     });
     await startStdio(server);
     return;
