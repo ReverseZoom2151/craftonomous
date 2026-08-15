@@ -7,4 +7,10 @@ export {
 } from './ports.js';
 
 export type { BlockOptions, FakeRecipe } from './world.js';
-export { AIR, EYE_HEIGHT, FakeWorld } from './world.js';
+export {
+  AIR,
+  EVENT_BUFFER_LIMIT,
+  EYE_HEIGHT,
+  FakeWorld,
+  pushBounded,
+} from './world.js';

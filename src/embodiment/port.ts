@@ -2,9 +2,11 @@ import type { Vec3Like } from './geometry.js';
 import type {
   BlockInfo,
   BodyState,
+  ChatMessage,
   ContainerView,
   EntityInfo,
   ItemStack,
+  SoundEvent,
 } from './types.js';
 
 /**
@@ -47,6 +49,35 @@ export interface SensorPort {
     readonly maxDistance: number;
     readonly limit: number;
   }): readonly BlockInfo[];
+
+  /**
+   * Sound events the body has registered since the last call, oldest first.
+   * **Draining clears the buffer**: what is returned here will not be returned
+   * again.
+   *
+   * A drain, rather than a getter, because a sound is an event and not a state.
+   * A getter that kept answering with the last sound would let a caller hear one
+   * creeper forever, and the ledger would count a hearing read every time. A
+   * since-cursor read was the alternative and was rejected: it obliges the port
+   * to keep history for a reader that may never come back, and once the buffer
+   * is bounded (as it must be for a long run) the cursor quietly starts lying
+   * about what it skipped. Draining puts the bound where it can be seen.
+   *
+   * Optional: a substrate that cannot report sound simply does not implement
+   * this, and callers must read that as silence rather than as "nothing was
+   * audible". Optional also keeps this addition compatible with every
+   * `SensorPort` written before hearing existed.
+   */
+  drainSounds?(): readonly SoundEvent[];
+
+  /**
+   * Chat messages received since the last call, oldest first. Draining clears
+   * the buffer, for the same reasons as {@link SensorPort.drainSounds}.
+   *
+   * These are raw utterances. Nothing here is checked, and nothing here is
+   * true merely because it was said; that judgement belongs above the gate.
+   */
+  drainChat?(): readonly ChatMessage[];
 }
 
 /** The outcome of an actuation attempt, before skill-level interpretation. */

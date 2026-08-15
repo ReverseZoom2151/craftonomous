@@ -10,9 +10,11 @@ import { isOccluded as rayIsOccluded } from '../raycast.js';
 import type {
   BlockInfo,
   BodyState,
+  ChatMessage,
   ContainerView,
   EntityInfo,
   ItemStack,
+  SoundEvent,
 } from '../types.js';
 import { FakeWorld } from './world.js';
 
@@ -64,6 +66,16 @@ export class FakeSensorPort implements SensorPort {
 
   isOccluded(from: Vec3Like, to: Vec3Like): boolean {
     return rayIsOccluded(from, to, (p) => this.world.isSolid(p));
+  }
+
+  /** Sounds since the last drain. See {@link SensorPort.drainSounds}. */
+  drainSounds(): readonly SoundEvent[] {
+    return this.world.drainSounds();
+  }
+
+  /** Chat since the last drain. See {@link SensorPort.drainChat}. */
+  drainChat(): readonly ChatMessage[] {
+    return this.world.drainChat();
   }
 
   findBlocks(options: {

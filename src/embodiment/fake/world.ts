@@ -3,9 +3,11 @@ import { distanceSquared, floor, key } from '../geometry.js';
 import type {
   BlockInfo,
   BodyState,
+  ChatMessage,
   ContainerView,
   EntityInfo,
   ItemStack,
+  SoundEvent,
 } from '../types.js';
 
 /**
@@ -90,6 +92,23 @@ const DEFAULT_BODY: BodyState = {
 export const EYE_HEIGHT = 1.62;
 
 /**
+ * How many undrained sound events or chat messages a body will hold.
+ *
+ * Events arrive whether or not anybody is listening, so an unbounded buffer is
+ * a memory leak with a long fuse: a bot left running overnight next to a mob
+ * grinder would accumulate hundreds of thousands of sounds nobody ever asked
+ * for. When the buffer is full the oldest event is dropped, because a stale
+ * sound is the one least worth hearing.
+ */
+export const EVENT_BUFFER_LIMIT = 256;
+
+/** Append to a bounded buffer, dropping the oldest entry when it is full. */
+export function pushBounded<T>(buffer: T[], event: T, limit: number): void {
+  buffer.push(event);
+  while (buffer.length > limit) buffer.shift();
+}
+
+/**
  * A deterministic in-memory voxel world.
  *
  * No I/O, no clock, no randomness: everything a test asserts on is something a
@@ -102,6 +121,8 @@ export class FakeWorld {
   readonly #entities = new Map<number, EntityInfo>();
   readonly #containers = new Map<string, StoredContainer>();
   readonly #recipes = new Map<string, FakeRecipe>();
+  readonly #sounds: SoundEvent[] = [];
+  readonly #chat: ChatMessage[] = [];
   #inventory: ItemStack[] = [];
   #equipment: Record<string, ItemStack | undefined> = {};
   #body: BodyState = DEFAULT_BODY;
@@ -361,6 +382,49 @@ export class FakeWorld {
     if (existing === undefined) stored.contents.push({ name, count });
     else stored.contents[index] = { ...existing, count: existing.count + count };
     return true;
+  }
+
+  // ---------------------------------------------------------------- events
+
+  /**
+   * Make a noise somewhere in the world. Nothing is filtered here: the world is
+   * as loud as it is, and whether the agent hears it is the perception gate's
+   * decision, not this world's.
+   */
+  emitSound(name: string, position: Vec3Like, volume = 1): void {
+    pushBounded(
+      this.#sounds,
+      { name, approximatePosition: { ...position }, volume },
+      EVENT_BUFFER_LIMIT,
+    );
+  }
+
+  /** Have somebody say something to the agent. */
+  emitChat(
+    from: string,
+    text: string,
+    options: { readonly private?: boolean } = {},
+  ): void {
+    pushBounded(
+      this.#chat,
+      { from, text, private: options.private ?? false },
+      EVENT_BUFFER_LIMIT,
+    );
+  }
+
+  /** Sounds since the last drain, oldest first. Clears the buffer. */
+  drainSounds(): readonly SoundEvent[] {
+    return this.#sounds.splice(0, this.#sounds.length);
+  }
+
+  /** Chat since the last drain, oldest first. Clears the buffer. */
+  drainChat(): readonly ChatMessage[] {
+    return this.#chat.splice(0, this.#chat.length);
+  }
+
+  /** How much is waiting to be drained. For assertions about the bound. */
+  pendingEvents(): { readonly sounds: number; readonly chat: number } {
+    return { sounds: this.#sounds.length, chat: this.#chat.length };
   }
 
   // --------------------------------------------------------------- recipes

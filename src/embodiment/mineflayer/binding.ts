@@ -10,9 +10,11 @@ import { isOccluded as rayIsOccluded } from '../raycast.js';
 import type {
   BlockInfo,
   BodyState,
+  ChatMessage,
   ContainerView,
   EntityInfo,
   ItemStack,
+  SoundEvent,
 } from '../types.js';
 import type { Logger } from '../../runtime/logger.js';
 import { silentLogger } from '../../runtime/logger.js';
@@ -148,6 +150,12 @@ export interface MineflayerBotLike {
   closeWindow(window: MfWindow): void;
   withdraw?: (itemType: number, metadata: number | null, count: number) => Promise<void>;
   chat(message: string): void;
+  /**
+   * Ask the server to respawn a dead body. Optional because older mineflayer
+   * builds do not expose it, and a body that cannot respawn should say so
+   * rather than appear to hang.
+   */
+  respawn?: () => void;
   lookAt(point: MfVec3, force?: boolean): Promise<void>;
   clearControlStates?: () => void;
   quit(reason?: string): void;
@@ -235,11 +243,96 @@ const EQUIPMENT_SLOTS: ReadonlyArray<readonly [string, number]> = [
 // Sensors.
 // --------------------------------------------------------------------------
 
+/**
+ * How many undrained sound events or chat messages this binding will hold.
+ *
+ * The server pushes events whether or not anything is listening, so the buffer
+ * must be bounded or a long session next to a mob farm ends as a heap dump.
+ * When it is full the oldest event is dropped: a sound nobody collected for two
+ * hundred events is no longer news.
+ */
+export const EVENT_BUFFER_LIMIT = 256;
+
+function pushBounded<T>(buffer: T[], event: T): void {
+  buffer.push(event);
+  while (buffer.length > EVENT_BUFFER_LIMIT) buffer.shift();
+}
+
+/** Narrow an upstream event argument to a point, or give up on it. */
+function asPoint(value: unknown): Vec3Like | undefined {
+  if (typeof value !== 'object' || value === null) return undefined;
+  const { x, y, z } = value as { x?: unknown; y?: unknown; z?: unknown };
+  if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number') {
+    return undefined;
+  }
+  return { x, y, z };
+}
+
 export class MineflayerSensorPort implements SensorPort {
+  readonly #sounds: SoundEvent[] = [];
+  readonly #chat: ChatMessage[] = [];
+
   constructor(
     private readonly bot: MineflayerBotLike,
     private readonly vec3: Vec3Factory,
-  ) {}
+  ) {
+    this.#subscribe();
+  }
+
+  /**
+   * Buffer sound and chat as the server delivers them.
+   *
+   * Upstream hands these listeners `unknown` by our own choice of signature, so
+   * every field is narrowed here and nothing loosely typed escapes the class. An
+   * event we cannot make sense of is dropped rather than guessed at: a sound
+   * with no position gives no bearing, and a bearing is the whole of what
+   * hearing provides.
+   */
+  #subscribe(): void {
+    this.bot.on('soundEffectHeard', (...args: unknown[]) => {
+      const name = args[0];
+      const at = asPoint(args[1]);
+      if (typeof name !== 'string' || at === undefined) return;
+      pushBounded(this.#sounds, {
+        name: stripNamespace(name),
+        approximatePosition: at,
+        volume: typeof args[2] === 'number' ? args[2] : 1,
+      });
+    });
+
+    // Hardcoded effects arrive as a numeric id with no name attached. The id is
+    // kept verbatim rather than mapped, because a wrong name is worse than an
+    // opaque one and the bearing is what a listener is really after.
+    this.bot.on('hardcodedSoundEffectHeard', (...args: unknown[]) => {
+      const id = args[0];
+      const at = asPoint(args[2]);
+      if (typeof id !== 'number' || at === undefined) return;
+      pushBounded(this.#sounds, {
+        name: `hardcoded_${id}`,
+        approximatePosition: at,
+        volume: typeof args[3] === 'number' ? args[3] : 1,
+      });
+    });
+
+    const message = (isPrivate: boolean) => (...args: unknown[]) => {
+      const from = args[0];
+      const text = args[1];
+      if (typeof from !== 'string' || typeof text !== 'string') return;
+      pushBounded(this.#chat, { from, text, private: isPrivate });
+    };
+    this.bot.on('chat', message(false));
+    this.bot.on('whisper', message(true));
+  }
+
+  /** Sounds since the last drain. See {@link SensorPort.drainSounds}. */
+  drainSounds(): readonly SoundEvent[] {
+    return this.#sounds.splice(0, this.#sounds.length);
+  }
+
+  /** Chat since the last drain. See {@link SensorPort.drainChat}. */
+  drainChat(): readonly ChatMessage[] {
+    return this.#chat.splice(0, this.#chat.length);
+  }
 
   body(): BodyState {
     const entity = this.bot.entity;
@@ -709,6 +802,7 @@ export function backoffDelay(attempt: number, policy: ReconnectPolicy): number {
 export class MineflayerEmbodiment implements EmbodimentPort {
   readonly sensors: MineflayerSensorPort;
   readonly actuators: MineflayerActuatorPort;
+  readonly #intentListeners = new Set<() => void>();
   #connected = true;
 
   constructor(
@@ -729,15 +823,36 @@ export class MineflayerEmbodiment implements EmbodimentPort {
     return this.#connected;
   }
 
+  /**
+   * Be told when this body is torn down on purpose.
+   *
+   * A session supervisor needs to tell a deliberate teardown from a dropped
+   * socket, and the socket itself cannot tell it: both arrive as `end`. Wire
+   * `SessionSupervisor.noteIntentionalDisconnect` here and the distinction is
+   * made where the intent actually is. Returns an unsubscribe function.
+   */
+  whenIntentionallyDisconnected(listener: () => void): () => void {
+    this.#intentListeners.add(listener);
+    return () => {
+      this.#intentListeners.delete(listener);
+    };
+  }
+
   async disconnect(): Promise<void> {
     if (!this.#connected) return;
     this.#connected = false;
+    for (const listener of this.#intentListeners) listener();
     try {
       await this.actuators.stop();
     } catch {
       // Best effort: we are leaving anyway.
     }
     this.bot.quit('disconnect');
+  }
+
+  /** Alias of {@link disconnect}, for callers that think of it as closing. */
+  async close(): Promise<void> {
+    await this.disconnect();
   }
 }
 
