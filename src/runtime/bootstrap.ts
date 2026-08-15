@@ -240,16 +240,43 @@ class SupervisedInvoker implements SkillInvoker {
     private readonly log: Logger,
   ) {}
 
-  async run(
+  /** The MCP layer's shape. Only `signal` and `log` are read from `ctx`. */
+  run(
     name: string,
     input: unknown,
     ctx: SkillContext,
+  ): Promise<SkillResult<unknown>> {
+    return this.#guarded(name, input, ctx.signal, ctx.log);
+  }
+
+  /**
+   * The agent layer's shape, and the reason both live on one object.
+   *
+   * `run` takes a whole `SkillContext` and then discards its `world` and `act`,
+   * so every caller had to fabricate two values that were thrown away. Worse,
+   * the agent layer asks for `invoke(name, input, {signal})`, which meant the
+   * headline path from a session to an agent loop could not be written without
+   * a shim, even though both halves typechecked on their own. Satisfying both
+   * interfaces here removes the shim.
+   */
+  invoke(
+    name: string,
+    input: unknown,
+    options?: { readonly signal?: AbortSignal },
+  ): Promise<SkillResult<unknown>> {
+    return this.#guarded(name, input, options?.signal, undefined);
+  }
+
+  async #guarded(
+    name: string,
+    input: unknown,
+    outer: AbortSignal | undefined,
+    log: Logger | undefined,
   ): Promise<SkillResult<unknown>> {
     const controller = new AbortController();
     const release = this.supervisor.guard(controller);
     // A caller's own cancellation still counts; the reflex token is folded in
     // beside it rather than replacing it.
-    const outer: AbortSignal | undefined = ctx.signal;
     const signal =
       outer === undefined
         ? controller.signal
@@ -258,7 +285,7 @@ class SupervisedInvoker implements SkillInvoker {
       return await this.runner.run(name, input, {
         world: this.world,
         act: this.act,
-        log: ctx.log ?? this.log,
+        log: log ?? this.log,
         signal,
       });
     } finally {

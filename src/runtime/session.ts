@@ -1,5 +1,6 @@
 import type { ActuatorPort } from '../embodiment/port.js';
-import type { SkillInvoker } from '../mcp/tools.js';
+import type { SkillInvoker as AgentInvoker } from '../agent/policy.js';
+import type { SkillInvoker as ToolInvoker } from '../mcp/tools.js';
 import type { PerceptionGate } from '../perception/gate.js';
 import type { WorldView } from '../perception/world-view.js';
 import type { SkillRegistry } from '../skills/registry.js';
@@ -23,10 +24,22 @@ import type { ReflexSupervisor } from './supervisor.js';
  * which is gated and counted. The bootstrap that assembles a session touches a
  * port because it is doing the wiring; nothing it returns exposes one.
  */
+/**
+ * Runs skills, in whichever shape the caller expects.
+ *
+ * Two layers grew their own invoker interface with the same name and different
+ * methods: the MCP surface wants `run(name, input, ctx)` and the agent layer
+ * wants `invoke(name, input, {signal})`. Both typechecked, neither could use
+ * the other, and nothing bridged them, so the headline path from a session to
+ * an agent loop could not be written without a caller-supplied shim. A session
+ * satisfies both.
+ */
+export type SessionInvoker = ToolInvoker & AgentInvoker;
+
 export interface Session {
   readonly registry: SkillRegistry;
   /** Runs skills. Pre-emption and reliability accounting happen behind this. */
-  readonly invoker: SkillInvoker;
+  readonly invoker: SessionInvoker;
   readonly world: WorldView;
   readonly reliability: ReliabilityTracker;
   /** What the body can do. Actuation is not gated; only perception is. */
