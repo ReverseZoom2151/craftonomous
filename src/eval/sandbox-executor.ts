@@ -14,11 +14,19 @@
  *
  * ## What the offline tier honestly cannot measure
  *
- * The sandbox has no positions, no altitude and no placement action. Three
- * shipped goals therefore cannot be evaluated here at all: the crafting table
- * placement goal, the shelter goal, and the altitude goal. Those attempts
- * return `error` and say why. They are not returned as `failure`: an agent that
- * was never given a world in which the goal is expressible has not failed.
+ * The sandbox now carries a minimal spatial model, so all five goal predicates
+ * are expressible offline, including the three that used to report themselves
+ * unscorable: the crafting table placement goal, the shelter goal and the
+ * altitude goal. What that model does *not* represent is set out at length in
+ * `src/sandbox/space.ts`, and it matters here: no terrain, no gravity, no
+ * collision volume, no light. In particular the shelter goal is scored by the
+ * six face neighbours of a single cell, which is weaker than the sentence's
+ * "sky access is 0", and it says so in the outcome detail rather than claiming
+ * the stronger thing.
+ *
+ * A predicate that still cannot be answered against a `SymbolicWorld` returns
+ * `error` and says why. It is never returned as `failure`: an agent that was
+ * never given a world in which the goal is expressible has not failed.
  *
  * The sandbox also cannot invent a starting world. A `Task` carries a goal, a
  * budget and a profile, and nothing about biome, deposits or starting
@@ -35,8 +43,19 @@ import { defineTask as defineSymbolicTask } from '../sandbox/task.js';
 import type { SymbolicWorld } from '../sandbox/world.js';
 import type { Clock } from '../runtime/clock.js';
 import { systemClock } from '../runtime/clock.js';
-import type { GoalPredicate, GoalPredicateOverrides } from './goal-check.js';
-import { checkPredicateAgainstItems, predicateFor } from './goal-check.js';
+import type { PlacedBlock, Vec3 } from '../sandbox/space.js';
+import { formatPosition } from '../sandbox/space.js';
+import type {
+  GoalCheck,
+  GoalPredicate,
+  GoalPredicateOverrides,
+} from './goal-check.js';
+import {
+  checkPredicateAgainstItems,
+  describePredicate,
+  normaliseItemName,
+  predicateFor,
+} from './goal-check.js';
 import { declaresImpossible } from './live.js';
 import type { AttemptContext, TaskExecutor } from './runner.js';
 import type { TaskOutcome } from './scoring.js';
@@ -51,6 +70,10 @@ export interface SandboxScenario {
   readonly craftingTable?: boolean;
   readonly furnace?: boolean;
   readonly recipes?: RecipeBook;
+  /** Where the agent starts. Omitted means the sandbox's default position. */
+  readonly agent?: Vec3;
+  /** Blocks already standing in the world. Omitted means an empty space. */
+  readonly blocks?: readonly PlacedBlock[];
 }
 
 export interface SandboxAttemptRecord {
@@ -102,21 +125,88 @@ export interface SandboxExecutorDeps {
  * `defineTask` validates it, and a policy built by `planningPolicy` plans
  * towards it. For a tag goal the first member is used, which is a real choice
  * and is why tag membership is ordered rather than a set.
+ *
+ * The positional predicates have no single item to plan towards. `block-nearby`
+ * at least implies holding the block before putting it down, so it names that.
+ * The other two name themselves: a placeholder that no recipe produces is more
+ * honest than inventing an item the goal never asked for, and a planner that
+ * cannot find a recipe for it will stop rather than flail.
  */
-function representativeGoal(
-  predicate: GoalPredicate,
-): { item: string; count: number } | undefined {
+function planningGoal(predicate: GoalPredicate): {
+  item: string;
+  count: number;
+} {
   switch (predicate.kind) {
     case 'item-count':
       return { item: predicate.item, count: predicate.count };
     case 'item-tag-count': {
       const first = predicate.items[0];
-      return first === undefined
-        ? undefined
-        : { item: first, count: predicate.count };
+      return { item: first ?? predicate.tag, count: predicate.count };
     }
-    default:
-      return undefined;
+    case 'block-nearby':
+      return { item: predicate.block, count: 1 };
+    case 'agent-y-at-least':
+      return { item: 'altitude', count: 1 };
+    case 'enclosed':
+      return { item: 'enclosure', count: 1 };
+  }
+}
+
+/**
+ * Evaluate a predicate against a symbolic world.
+ *
+ * The offline counterpart of `checkPredicate`, which reads a live `WorldView`.
+ * Item predicates go through the shared item checker so that the two tiers
+ * normalise names identically; the positional ones read the sandbox's spatial
+ * model directly, since it has no perception gate to go through.
+ */
+export function checkPredicateAgainstWorld(
+  predicate: GoalPredicate,
+  world: SymbolicWorld,
+): GoalCheck {
+  switch (predicate.kind) {
+    case 'item-count':
+    case 'item-tag-count':
+      return checkPredicateAgainstItems(predicate, world.inventory.toRecord());
+    case 'block-nearby': {
+      const found = world.blocksWithin(
+        normaliseItemName(predicate.block),
+        predicate.radius,
+      );
+      const first = found[0];
+      return {
+        checkable: true,
+        met: first !== undefined,
+        detail:
+          first === undefined
+            ? `no ${predicate.block} within ${predicate.radius} blocks of ${formatPosition(world.agentPosition)}`
+            : `${predicate.block} at ${formatPosition(first.position)}`,
+      };
+    }
+    case 'agent-y-at-least': {
+      const y = world.agentPosition.y;
+      return {
+        checkable: true,
+        met: y >= predicate.y,
+        detail: `agent y is ${y}, needed ${predicate.y}`,
+      };
+    }
+    case 'enclosed': {
+      const open = world.openFaces();
+      return {
+        checkable: true,
+        met: open.length === 0,
+        detail:
+          open.length === 0
+            ? 'all six faces are solid'
+            : `open faces: ${open.map(formatPosition).join(', ')}`,
+        // Same caveat as the live tier, for a different reason: the sandbox has
+        // no light and no block states at all, so sky access is not a thing it
+        // can answer. The six-face test is stated as the weaker claim it is.
+        caveat:
+          'the sandbox models no sky light; only the six face neighbours were checked',
+      };
+    }
   }
 }
 
@@ -172,17 +262,7 @@ export function createSandboxExecutor(
     }
     const predicate = parsed.predicate;
 
-    const goal = representativeGoal(predicate);
-    if (goal === undefined) {
-      return finish(
-        errorOutcome(
-          `task ${task.id} is not scorable in the sandbox tier: it needs positions or altitude, which the symbolic world does not model`,
-          clock.now() - startedAt,
-        ),
-        predicate,
-        undefined,
-      );
-    }
+    const goal = planningGoal(predicate);
 
     const scenario = deps.scenario(task, context);
     if (scenario === undefined) {
@@ -197,13 +277,10 @@ export function createSandboxExecutor(
     }
 
     // The predicate, not the sandbox's own inventory test, decides the goal.
-    // Item names are normalised on both sides inside `checkPredicateAgainstItems`,
-    // because the suites are namespaced and the sandbox is not.
+    // Item names are normalised on both sides inside the checker, because the
+    // suites are namespaced and the sandbox is not.
     const check = (world: SymbolicWorld): boolean => {
-      const result = checkPredicateAgainstItems(
-        predicate,
-        world.inventory.toRecord(),
-      );
+      const result = checkPredicateAgainstWorld(predicate, world);
       return result.checkable && result.met;
     };
 
@@ -225,6 +302,8 @@ export function createSandboxExecutor(
         ? {}
         : { craftingTable: scenario.craftingTable }),
       ...(scenario.furnace === undefined ? {} : { furnace: scenario.furnace }),
+      ...(scenario.agent === undefined ? {} : { agent: scenario.agent }),
+      ...(scenario.blocks === undefined ? {} : { blocks: scenario.blocks }),
     });
 
     const policy =
@@ -256,11 +335,22 @@ export function createSandboxExecutor(
 
     const durationMs = clock.now() - startedAt;
     const steps = run.stepsUsed;
-    const held = checkPredicateAgainstItems(
-      predicate,
-      run.world.inventory.toRecord(),
-    );
-    const state = held.checkable ? held.detail : held.reason;
+    const held = checkPredicateAgainstWorld(predicate, run.world);
+    if (!held.checkable) {
+      // Defensive: every predicate the language has is answerable against a
+      // symbolic world today. If a new one is not, it reports itself unscorable
+      // rather than scoring an agent down for a hole in the harness.
+      return finish(
+        errorOutcome(
+          `task ${task.id} is not scorable in the sandbox tier: "${describePredicate(predicate)}" cannot be answered by the symbolic world (${held.reason})`,
+          durationMs,
+        ),
+        predicate,
+        run,
+      );
+    }
+    const state =
+      held.caveat === undefined ? held.detail : `${held.detail} (${held.caveat})`;
 
     switch (run.outcome) {
       case 'goal-reached':

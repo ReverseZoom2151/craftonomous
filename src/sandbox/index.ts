@@ -26,6 +26,15 @@ export type {
 } from './techtree.js';
 export { TechTree } from './techtree.js';
 
+export type { PlacedBlock, Vec3 } from './space.js';
+export {
+  DEFAULT_AGENT_POSITION,
+  DEFAULT_BUILD_LIMIT,
+  DEFAULT_PLACE_REACH,
+  DEFAULT_WORLD_FLOOR,
+  FACE_OFFSETS,
+} from './space.js';
+
 export type {
   ActionKind,
   ActionRefusal,

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { ManualClock } from '../../src/runtime/clock.js';
 import type { Action, Policy } from '../../src/sandbox/runner.js';
+import type { Vec3 } from '../../src/sandbox/space.js';
 import { createSandboxExecutor } from '../../src/eval/sandbox-executor.js';
 import type { SandboxScenario } from '../../src/eval/sandbox-executor.js';
 import type { AttemptContext } from '../../src/eval/runner.js';
@@ -41,6 +42,27 @@ function script(actions: readonly Action[]): Policy {
 }
 
 const FOREST: SandboxScenario = { resources: { oak_log: 8 } };
+
+/** The three goals that used to report themselves unscorable in this tier. */
+const PLACEMENT: Partial<Task> = {
+  goal: 'a minecraft:crafting_table block exists within 4 blocks of the agent',
+};
+const SHELTER: Partial<Task> = {
+  goal: 'agent position is fully enclosed by solid blocks and sky access is 0',
+};
+const ALTITUDE: Partial<Task> = {
+  goal: 'agent y position is at least 5000 (beyond the build limit)',
+};
+
+/** The six face neighbours of (0, 64, 0), in the world's own order. */
+const FACES: readonly Vec3[] = [
+  { x: 1, y: 64, z: 0 },
+  { x: -1, y: 64, z: 0 },
+  { x: 0, y: 65, z: 0 },
+  { x: 0, y: 63, z: 0 },
+  { x: 0, y: 64, z: 1 },
+  { x: 0, y: 64, z: -1 },
+];
 
 describe('createSandboxExecutor', () => {
   it('scores a met goal as success, matching namespaced names to bare ones', async () => {
@@ -163,29 +185,138 @@ describe('createSandboxExecutor', () => {
     expect(outcome.detail).toMatch(/no sandbox scenario/);
   });
 
-  it('reports a positional goal as unscorable in this tier', async () => {
+  it('scores the crafting table placement goal when the block goes down', async () => {
     const executor = createSandboxExecutor({
       clock: new ManualClock(),
       scenario: () => FOREST,
-      policy: script([{ kind: 'stop' }]),
+      policy: script([
+        { kind: 'mine', resource: 'oak_log', count: 1 },
+        { kind: 'craft', item: 'oak_planks', count: 4 },
+        { kind: 'craft', item: 'crafting_table', count: 1 },
+        {
+          kind: 'place',
+          block: 'crafting_table',
+          at: { x: 1, y: 64, z: 0 },
+        },
+      ]),
     });
 
-    const placement = await executor(
-      evalTask({
-        goal: 'a minecraft:crafting_table block exists within 4 blocks of the agent',
-      }),
-      context(),
-    );
-    expect(placement.kind).toBe('error');
-    expect(placement.detail).toMatch(/not scorable in the sandbox tier/);
+    const outcome = await executor(evalTask(PLACEMENT), context());
+    expect(outcome.kind).toBe('success');
+    expect(outcome.detail).toMatch(/crafting_table at \(1, 64, 0\)/);
+  });
 
-    const altitude = await executor(
-      evalTask({
-        goal: 'agent y position is at least 5000 (beyond the build limit)',
+  it('scores the placement goal as unmet when the table is only crafted', async () => {
+    const executor = createSandboxExecutor({
+      clock: new ManualClock(),
+      scenario: () => FOREST,
+      policy: script([
+        { kind: 'mine', resource: 'oak_log', count: 1 },
+        { kind: 'craft', item: 'oak_planks', count: 4 },
+        { kind: 'craft', item: 'crafting_table', count: 1 },
+        { kind: 'stop', reason: 'crafted it, never put it down' },
+      ]),
+    });
+
+    const outcome = await executor(evalTask(PLACEMENT), context());
+    expect(outcome.kind).toBe('failure');
+    expect(outcome.detail).toMatch(/no crafting_table within 4 blocks/);
+  });
+
+  it('scores the shelter goal when all six faces are sealed', async () => {
+    const executor = createSandboxExecutor({
+      clock: new ManualClock(),
+      scenario: () => ({
+        startingInventory: { cobblestone: 6 },
+        agent: { x: 0, y: 64, z: 0 },
       }),
+      policy: script(
+        FACES.map((at) => ({
+          kind: 'place' as const,
+          block: 'cobblestone',
+          at,
+        })),
+      ),
+    });
+
+    const outcome = await executor(evalTask(SHELTER), context());
+    expect(outcome.kind).toBe('success');
+    expect(outcome.detail).toMatch(/all six faces are solid/);
+    // The offline check is weaker than the sentence asks for, and says so.
+    expect(outcome.detail).toMatch(/only the six face neighbours/);
+  });
+
+  it('scores the shelter goal as unmet when one face is left open', async () => {
+    const executor = createSandboxExecutor({
+      clock: new ManualClock(),
+      scenario: () => ({
+        startingInventory: { cobblestone: 6 },
+        agent: { x: 0, y: 64, z: 0 },
+      }),
+      policy: script([
+        ...FACES.slice(0, 5).map((at) => ({
+          kind: 'place' as const,
+          block: 'cobblestone',
+          at,
+        })),
+        { kind: 'stop', reason: 'left the door open' },
+      ]),
+    });
+
+    const outcome = await executor(evalTask(SHELTER), context());
+    expect(outcome.kind).toBe('failure');
+    expect(outcome.detail).toMatch(/open faces: \(0, 64, -1\)/);
+  });
+
+  it('reads the agent y for the altitude goal, and refusing it scores as refused', async () => {
+    const refuser = createSandboxExecutor({
+      clock: new ManualClock(),
+      scenario: () => ({ agent: { x: 0, y: 64, z: 0 } }),
+      policy: script([
+        { kind: 'stop', reason: 'impossible: y = 5000 is above the build limit' },
+      ]),
+    });
+
+    const refused = await refuser(
+      evalTask({ ...ALTITUDE, impossible: true }),
       context(),
     );
-    expect(altitude.kind).toBe('error');
+    expect(refused.kind).toBe('refused');
+    expect(refused.detail).toMatch(/agent y is 64, needed 5000/);
+
+    // Climbing is a legal thing to try and gets nowhere near, because the
+    // sandbox enforces a build limit rather than pretending y is unbounded.
+    const climber = createSandboxExecutor({
+      clock: new ManualClock(),
+      scenario: () => ({ agent: { x: 0, y: 64, z: 0 } }),
+      policyFor: () => (world) => ({
+        kind: 'move',
+        to: { x: 0, y: world.agentPosition.y + 1, z: 0 },
+      }),
+    });
+    const climbed = await climber(
+      evalTask({ ...ALTITUDE, impossible: true }),
+      context(),
+    );
+    expect(climbed.kind).toBe('timeout');
+    expect(climbed.detail).toMatch(/agent y is 80, needed 5000/);
+  });
+
+  it('scores a reachable altitude goal as success', async () => {
+    const executor = createSandboxExecutor({
+      clock: new ManualClock(),
+      scenario: () => ({ agent: { x: 0, y: 64, z: 0 } }),
+      policy: script([
+        { kind: 'move', to: { x: 0, y: 65, z: 0 } },
+        { kind: 'move', to: { x: 0, y: 66, z: 0 } },
+      ]),
+    });
+
+    const outcome = await executor(
+      evalTask({ goal: 'agent y position is at least 66' }),
+      context(),
+    );
+    expect(outcome.kind).toBe('success');
   });
 
   it('reports an unreadable goal as an error', async () => {

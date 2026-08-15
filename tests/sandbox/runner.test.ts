@@ -205,6 +205,74 @@ describe('runTask control flow', () => {
   });
 });
 
+describe('spatial actions through the runner', () => {
+  it('places and moves, and a task can check the result', () => {
+    const shelter = defineTask({
+      id: 'shelter',
+      description: 'Seal yourself in with six cobblestone.',
+      goal: { item: 'cobblestone', count: 6 },
+      startingInventory: { cobblestone: 6 },
+      agent: { x: 0, y: 64, z: 0 },
+      stepBudget: 8,
+      check: (world) => world.enclosed,
+    });
+    const result = runTask(
+      shelter,
+      scripted(
+        { kind: 'place', block: 'cobblestone', at: { x: 1, y: 64, z: 0 } },
+        { kind: 'place', block: 'cobblestone', at: { x: -1, y: 64, z: 0 } },
+        { kind: 'place', block: 'cobblestone', at: { x: 0, y: 65, z: 0 } },
+        { kind: 'place', block: 'cobblestone', at: { x: 0, y: 63, z: 0 } },
+        { kind: 'place', block: 'cobblestone', at: { x: 0, y: 64, z: 1 } },
+        { kind: 'place', block: 'cobblestone', at: { x: 0, y: 64, z: -1 } },
+      ),
+    );
+    expect(result.outcome).toBe('goal-reached');
+    expect(result.stepsUsed).toBe(6);
+    expect(result.world.inventory.count('cobblestone')).toBe(0);
+  });
+
+  it('reports a refused placement without ending the run', () => {
+    const task = defineTask({
+      id: 'place-nothing',
+      description: 'Place a block that is not held.',
+      goal: { item: 'cobblestone', count: 1 },
+      agent: { x: 0, y: 64, z: 0 },
+      stepBudget: 2,
+    });
+    const result = runTask(
+      task,
+      scripted({
+        kind: 'place',
+        block: 'cobblestone',
+        at: { x: 1, y: 64, z: 0 },
+      }),
+    );
+    expect(result.refusal?.reason).toBe('item-not-held');
+    expect(result.log[0]?.action.kind).toBe('place');
+  });
+
+  it('moves the agent one step at a time', () => {
+    const task = defineTask({
+      id: 'climb',
+      description: 'Stand two blocks higher than you started.',
+      goal: { item: 'stick', count: 1 },
+      agent: { x: 0, y: 64, z: 0 },
+      stepBudget: 4,
+      check: (world) => world.agentPosition.y >= 66,
+    });
+    const result = runTask(
+      task,
+      scripted(
+        { kind: 'move', to: { x: 0, y: 65, z: 0 } },
+        { kind: 'move', to: { x: 0, y: 66, z: 0 } },
+      ),
+    );
+    expect(result.outcome).toBe('goal-reached');
+    expect(result.world.agentPosition).toEqual({ x: 0, y: 66, z: 0 });
+  });
+});
+
 describe('impossible tasks', () => {
   it('scores a refusal as success', () => {
     const task = requireTask('pickaxe-without-a-table');

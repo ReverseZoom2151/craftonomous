@@ -1,5 +1,7 @@
 import type { ItemCounts } from './inventory.js';
 import type { RecipeBook } from './recipes.js';
+import { DEFAULT_AGENT_POSITION } from './space.js';
+import type { PlacedBlock, Vec3 } from './space.js';
 import { SymbolicWorld } from './world.js';
 
 /**
@@ -27,6 +29,10 @@ export interface SymbolicTaskSpec {
   readonly biome?: string;
   readonly craftingTable?: boolean;
   readonly furnace?: boolean;
+  /** Where the agent starts. Omitted means the default position. */
+  readonly agent?: Vec3;
+  /** Blocks already standing in the world. Omitted means none. */
+  readonly blocks?: readonly PlacedBlock[];
   /** Maximum actions the runner will allow. Omitted means unbounded. */
   readonly stepBudget?: number;
   /** True when the goal cannot be reached from this starting world. */
@@ -44,6 +50,8 @@ export interface SymbolicTask {
   readonly biome: string;
   readonly craftingTable: boolean;
   readonly furnace: boolean;
+  readonly agent: Vec3;
+  readonly blocks: readonly PlacedBlock[];
   readonly stepBudget: number | undefined;
   readonly impossible: boolean;
   /** True when the world satisfies the goal. */
@@ -72,6 +80,8 @@ export function defineTask(spec: SymbolicTaskSpec): SymbolicTask {
   const biome = spec.biome ?? 'plains';
   const craftingTable = spec.craftingTable ?? false;
   const furnace = spec.furnace ?? false;
+  const agent = spec.agent ?? DEFAULT_AGENT_POSITION;
+  const blocks = [...(spec.blocks ?? [])];
   const check =
     spec.check ??
     ((world: SymbolicWorld): boolean =>
@@ -86,6 +96,8 @@ export function defineTask(spec: SymbolicTaskSpec): SymbolicTask {
     biome,
     craftingTable,
     furnace,
+    agent,
+    blocks,
     stepBudget: spec.stepBudget,
     impossible: spec.impossible ?? false,
     check,
@@ -96,6 +108,8 @@ export function defineTask(spec: SymbolicTaskSpec): SymbolicTask {
         biome,
         craftingTable,
         furnace,
+        agent,
+        blocks,
         ...(recipes ? { recipes } : {}),
       });
     },

@@ -1,6 +1,7 @@
 import type { SymbolicTask, TaskGoal } from './task.js';
 import type { ActionRefusal, ActionResult, SymbolicWorld } from './world.js';
 import type { RecipeBook } from './recipes.js';
+import type { Vec3 } from './space.js';
 import { TechTree } from './techtree.js';
 
 /**
@@ -19,6 +20,10 @@ export type Action =
     }
   | { readonly kind: 'craft'; readonly item: string; readonly count?: number }
   | { readonly kind: 'smelt'; readonly item: string; readonly count?: number }
+  /** Put a held block down at a coordinate within reach. */
+  | { readonly kind: 'place'; readonly block: string; readonly at: Vec3 }
+  /** Step the agent to an adjacent cell. */
+  | { readonly kind: 'move'; readonly to: Vec3 }
   /**
    * Declare the task finished or unreachable. On an `impossible` task this is
    * the only correct answer, which is why it is an action and not a return of
@@ -211,5 +216,9 @@ function applyAction(
       return world.craft(action.item, action.count ?? 1);
     case 'smelt':
       return world.smelt(action.item, action.count ?? 1);
+    case 'place':
+      return world.place(action.block, action.at);
+    case 'move':
+      return world.move(action.to);
   }
 }

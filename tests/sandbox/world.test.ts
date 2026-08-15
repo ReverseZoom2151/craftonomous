@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Inventory } from '../../src/sandbox/inventory.js';
 import { RecipeBook } from '../../src/sandbox/recipes.js';
+import { DEFAULT_AGENT_POSITION } from '../../src/sandbox/space.js';
 import { SymbolicWorld } from '../../src/sandbox/world.js';
 
 describe('SymbolicWorld construction', () => {
@@ -227,6 +228,243 @@ describe('smelt', () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.reason).toBe('unknown-recipe');
+  });
+});
+
+describe('space defaults', () => {
+  it('a world with no spatial setup stands somewhere empty', () => {
+    const world = new SymbolicWorld();
+    expect(world.agentPosition).toEqual(DEFAULT_AGENT_POSITION);
+    expect(world.blocks()).toEqual([]);
+    expect(world.blockAt({ x: 0, y: 64, z: 0 })).toBeUndefined();
+    expect(world.enclosed).toBe(false);
+    expect(world.openFaces()).toHaveLength(6);
+  });
+
+  it('accepts a starting position and starting blocks', () => {
+    const world = new SymbolicWorld({
+      agent: { x: 10, y: 70, z: -3 },
+      blocks: [{ position: { x: 10, y: 69, z: -3 }, name: 'cobblestone' }],
+    });
+    expect(world.agentPosition).toEqual({ x: 10, y: 70, z: -3 });
+    expect(world.blockAt({ x: 10, y: 69, z: -3 })?.name).toBe('cobblestone');
+    expect(world.openFaces()).toHaveLength(5);
+  });
+
+  it('refuses a fractional starting position', () => {
+    expect(() => new SymbolicWorld({ agent: { x: 0.5, y: 64, z: 0 } })).toThrow(
+      RangeError,
+    );
+  });
+
+  it('clones the spatial state without sharing it', () => {
+    const world = new SymbolicWorld({
+      inventory: { cobblestone: 4 },
+      agent: { x: 0, y: 64, z: 0 },
+    });
+    const copy = world.clone();
+    copy.place('cobblestone', { x: 1, y: 64, z: 0 });
+    copy.move({ x: 0, y: 65, z: 0 });
+    expect(world.blocks()).toEqual([]);
+    expect(world.agentPosition).toEqual({ x: 0, y: 64, z: 0 });
+    expect(copy.blocks()).toHaveLength(1);
+    expect(copy.agentPosition).toEqual({ x: 0, y: 65, z: 0 });
+  });
+});
+
+describe('place', () => {
+  const held = (): SymbolicWorld =>
+    new SymbolicWorld({
+      inventory: { cobblestone: 2, crafting_table: 1 },
+      agent: { x: 0, y: 64, z: 0 },
+    });
+
+  it('puts a held block down and spends it', () => {
+    const world = held();
+    const result = world.place('cobblestone', { x: 1, y: 64, z: 0 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.consumed).toEqual({ cobblestone: 1 });
+    expect(result.position).toEqual({ x: 1, y: 64, z: 0 });
+    expect(world.inventory.count('cobblestone')).toBe(1);
+    expect(world.blockAt({ x: 1, y: 64, z: 0 })?.name).toBe('cobblestone');
+  });
+
+  it('refuses a block the inventory does not hold', () => {
+    const world = held();
+    const result = world.place('dirt', { x: 1, y: 64, z: 0 });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe('item-not-held');
+    expect(result.shortfall).toEqual({ item: 'dirt', needed: 1, held: 0 });
+    expect(world.blocks()).toEqual([]);
+  });
+
+  it("refuses an occupied position, including the agent's own cell", () => {
+    const world = held();
+    expect(world.place('cobblestone', { x: 1, y: 64, z: 0 }).ok).toBe(true);
+    const again = world.place('cobblestone', { x: 1, y: 64, z: 0 });
+    expect(again.ok).toBe(false);
+    if (again.ok) return;
+    expect(again.reason).toBe('position-occupied');
+
+    const onSelf = world.place('cobblestone', { x: 0, y: 64, z: 0 });
+    expect(onSelf.ok).toBe(false);
+    if (onSelf.ok) return;
+    expect(onSelf.reason).toBe('position-occupied');
+    expect(world.inventory.count('cobblestone')).toBe(1);
+  });
+
+  it('refuses a position beyond reach', () => {
+    const world = held();
+    const result = world.place('cobblestone', { x: 20, y: 64, z: 0 });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe('out-of-reach');
+  });
+
+  it('refuses a fractional position and one above the build limit', () => {
+    const world = held();
+    const fractional = world.place('cobblestone', { x: 0.5, y: 64, z: 0 });
+    expect(fractional.ok).toBe(false);
+    if (fractional.ok) return;
+    expect(fractional.reason).toBe('invalid-position');
+
+    const sky = new SymbolicWorld({
+      inventory: { cobblestone: 1 },
+      agent: { x: 0, y: 319, z: 0 },
+    }).place('cobblestone', { x: 0, y: 320, z: 0 });
+    expect(sky.ok).toBe(false);
+    if (sky.ok) return;
+    expect(sky.reason).toBe('outside-world-height');
+  });
+
+  it('brings a placed station into reach', () => {
+    const world = new SymbolicWorld({
+      inventory: { crafting_table: 1, oak_planks: 8, stick: 4 },
+      agent: { x: 0, y: 64, z: 0 },
+    });
+    expect(world.craftingTableInReach).toBe(false);
+    expect(world.place('crafting_table', { x: 1, y: 64, z: 0 }).ok).toBe(true);
+    expect(world.craftingTableInReach).toBe(true);
+    expect(world.craft('wooden_pickaxe').ok).toBe(true);
+  });
+});
+
+describe('move', () => {
+  const walker = (): SymbolicWorld =>
+    new SymbolicWorld({ agent: { x: 0, y: 64, z: 0 } });
+
+  it('steps to an adjacent cell, diagonals included', () => {
+    const world = walker();
+    const result = world.move({ x: 1, y: 65, z: 0 });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.position).toEqual({ x: 1, y: 65, z: 0 });
+    expect(world.agentPosition).toEqual({ x: 1, y: 65, z: 0 });
+  });
+
+  it('refuses a jump longer than one step', () => {
+    const world = walker();
+    const result = world.move({ x: 5, y: 64, z: 0 });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe('out-of-reach');
+
+    // The altitude goal is out of reach twice over: a step is one cell, and
+    // y = 5000 is above the build limit either way.
+    const leap = world.move({ x: 0, y: 5000, z: 0 });
+    expect(leap.ok).toBe(false);
+    if (leap.ok) return;
+    expect(leap.reason).toBe('outside-world-height');
+    expect(world.agentPosition).toEqual({ x: 0, y: 64, z: 0 });
+  });
+
+  it('refuses to walk into a block', () => {
+    const world = new SymbolicWorld({
+      agent: { x: 0, y: 64, z: 0 },
+      blocks: [{ position: { x: 1, y: 64, z: 0 }, name: 'cobblestone' }],
+    });
+    const result = world.move({ x: 1, y: 64, z: 0 });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.reason).toBe('position-occupied');
+  });
+
+  it('refuses a fractional target and one above the build limit', () => {
+    const world = walker();
+    const fractional = world.move({ x: 0, y: 64.5, z: 0 });
+    expect(fractional.ok).toBe(false);
+    if (fractional.ok) return;
+    expect(fractional.reason).toBe('invalid-position');
+
+    const ceiling = new SymbolicWorld({ agent: { x: 0, y: 319, z: 0 } }).move({
+      x: 0,
+      y: 320,
+      z: 0,
+    });
+    expect(ceiling.ok).toBe(false);
+    if (ceiling.ok) return;
+    expect(ceiling.reason).toBe('outside-world-height');
+  });
+
+  it('cannot climb past the build limit however long it walks', () => {
+    const world = new SymbolicWorld({ agent: { x: 0, y: 300, z: 0 } });
+    for (let i = 0; i < 100; i++) {
+      world.move({ x: 0, y: world.agentPosition.y + 1, z: 0 });
+    }
+    expect(world.agentPosition.y).toBe(319);
+  });
+});
+
+describe('spatial queries', () => {
+  it('finds a named block within a radius and not beyond it', () => {
+    const world = new SymbolicWorld({
+      agent: { x: 0, y: 64, z: 0 },
+      blocks: [
+        { position: { x: 3, y: 64, z: 0 }, name: 'crafting_table' },
+        { position: { x: 9, y: 64, z: 0 }, name: 'crafting_table' },
+        { position: { x: 1, y: 64, z: 0 }, name: 'furnace' },
+      ],
+    });
+    expect(world.blocksWithin('crafting_table', 4)).toHaveLength(1);
+    expect(world.blocksWithin('crafting_table', 2)).toHaveLength(0);
+    expect(world.blocksWithin('crafting_table', 20)).toHaveLength(2);
+    expect(world.blocksWithin('dirt', 20)).toHaveLength(0);
+  });
+
+  it('detects a sealed cell and rejects one with a gap', () => {
+    const faces = [
+      { x: 1, y: 64, z: 0 },
+      { x: -1, y: 64, z: 0 },
+      { x: 0, y: 65, z: 0 },
+      { x: 0, y: 63, z: 0 },
+      { x: 0, y: 64, z: 1 },
+      { x: 0, y: 64, z: -1 },
+    ];
+    const sealed = new SymbolicWorld({
+      agent: { x: 0, y: 64, z: 0 },
+      blocks: faces.map((position) => ({ position, name: 'cobblestone' })),
+    });
+    expect(sealed.enclosed).toBe(true);
+    expect(sealed.openFaces()).toEqual([]);
+
+    const gapped = new SymbolicWorld({
+      agent: { x: 0, y: 64, z: 0 },
+      blocks: faces
+        .slice(0, 5)
+        .map((position) => ({ position, name: 'cobblestone' })),
+    });
+    expect(gapped.enclosed).toBe(false);
+    expect(gapped.openFaces()).toEqual([{ x: 0, y: 64, z: -1 }]);
+  });
+
+  it('counts only the six faces: a diagonal neighbour is not a wall', () => {
+    const world = new SymbolicWorld({
+      agent: { x: 0, y: 64, z: 0 },
+      blocks: [{ position: { x: 1, y: 65, z: 0 }, name: 'cobblestone' }],
+    });
+    expect(world.openFaces()).toHaveLength(6);
   });
 });
 
