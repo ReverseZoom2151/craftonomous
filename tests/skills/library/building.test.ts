@@ -87,7 +87,10 @@ describe('placeBlock precondition', () => {
   it('refuses a support that is not solid', async () => {
     const h = harness({
       inventory: [{ name: 'cobblestone', count: 4 }],
-      blocks: [block('water', at(1, 64, 0), false), block('air', at(1, 65, 0), false)],
+      blocks: [
+        block('water', at(1, 64, 0), false),
+        block('air', at(1, 65, 0), false),
+      ],
     });
     const check = await precondition(placeBlock, h.ctx, {
       item: 'cobblestone',
@@ -135,7 +138,10 @@ describe('placeBlock', () => {
   it('fails unreachable when the destination is out of reach', async () => {
     const h = harness({
       inventory: [{ name: 'cobblestone', count: 4 }],
-      blocks: [block('stone', at(30, 64, 0)), block('air', at(30, 65, 0), false)],
+      blocks: [
+        block('stone', at(30, 64, 0)),
+        block('air', at(30, 65, 0), false),
+      ],
     });
     const result = await placeBlock.run(h.ctx, {
       item: 'cobblestone',
@@ -152,7 +158,10 @@ describe('placeBlock', () => {
     const h = harness(
       {
         inventory: [{ name: 'cobblestone', count: 4 }],
-        blocks: [block('stone', at(1, 64, 0)), block('air', at(1, 65, 0), false)],
+        blocks: [
+          block('stone', at(1, 64, 0)),
+          block('air', at(1, 65, 0), false),
+        ],
       },
       { placeBlock: () => OK },
     );
@@ -172,7 +181,10 @@ describe('placeBlock', () => {
     const h = harness(
       {
         inventory: [{ name: 'cobblestone', count: 4 }],
-        blocks: [block('stone', at(1, 64, 0)), block('air', at(1, 65, 0), false)],
+        blocks: [
+          block('stone', at(1, 64, 0)),
+          block('air', at(1, 65, 0), false),
+        ],
       },
       { placeBlock: () => refuse('nothing to place against') },
     );

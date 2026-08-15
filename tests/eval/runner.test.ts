@@ -61,14 +61,7 @@ describe('runSuite', () => {
     });
     expect(run.repeats).toBe(3);
     expect(run.attempts).toHaveLength(6);
-    expect(seen).toEqual([
-      'a#0',
-      'a#1',
-      'a#2',
-      'b#0',
-      'b#1',
-      'b#2',
-    ]);
+    expect(seen).toEqual(['a#0', 'a#1', 'a#2', 'b#0', 'b#1', 'b#2']);
     expect(run.score.attempts).toBe(6);
   });
 

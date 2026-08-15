@@ -116,13 +116,17 @@ function setup(
   const gate = new PerceptionGate(profile, clock);
   const memory = new WorldMemory(clock, {
     expiry: gate,
-    ...(options.maxEntries === undefined ? {} : { maxEntries: options.maxEntries }),
+    ...(options.maxEntries === undefined
+      ? {}
+      : { maxEntries: options.maxEntries }),
   });
   const view = new PerceptionAdapter(
     sensors,
     gate,
     memory,
-    options.container === undefined ? {} : { containerSource: options.container },
+    options.container === undefined
+      ? {}
+      : { containerSource: options.container },
   );
   return { clock, sensors, gate, memory, view } as const;
 }
@@ -272,10 +276,18 @@ describe('nearbyEntities', () => {
     const { view, sensors } = setup();
     sensors.entityList = [
       cow(1, vec3(2, 65, 0)),
-      { id: 2, name: 'zombie', kind: 'mob', position: vec3(3, 65, 0), hostile: true },
+      {
+        id: 2,
+        name: 'zombie',
+        kind: 'mob',
+        position: vec3(3, 65, 0),
+        hostile: true,
+      },
     ];
 
-    expect(view.nearbyEntities({ kinds: ['mob'] }).map((o) => o.value.id)).toEqual([2]);
+    expect(
+      view.nearbyEntities({ kinds: ['mob'] }).map((o) => o.value.id),
+    ).toEqual([2]);
   });
 });
 
@@ -298,7 +310,9 @@ describe('findBlocks', () => {
     sensors.put(block('stone', vec3(4, 64, 0)));
     sensors.put(block('stone', vec3(6, 64, 0)));
 
-    expect(view.findBlocks({ names: ['stone'], maxDistance: 32, limit: 2 })).toHaveLength(2);
+    expect(
+      view.findBlocks({ names: ['stone'], maxDistance: 32, limit: 2 }),
+    ).toHaveLength(2);
   });
 
   it('unions recollections in when a known block is no longer visible', () => {
@@ -376,7 +390,9 @@ describe('the ledger a run ships with', () => {
   it('reports fair play with a zero privileged share for a fair-play run', () => {
     const { view, sensors, clock } = setup();
     sensors.put(block('iron_ore', vec3(4, 64, 0)));
-    sensors.entityList = [{ id: 1, name: 'cow', kind: 'animal', position: vec3(3, 65, 0) }];
+    sensors.entityList = [
+      { id: 1, name: 'cow', kind: 'animal', position: vec3(3, 65, 0) },
+    ];
 
     view.body();
     view.inventory();

@@ -74,7 +74,11 @@ function above(p: Vec3Like, dy: number): Vec3Like {
  * an absent block, and firing on ignorance would make this reflex chatter
  * every time the agent walks past the edge of its sight range.
  */
-function knownDropBelow(world: WorldView, from: Vec3Like, depth: number): boolean {
+function knownDropBelow(
+  world: WorldView,
+  from: Vec3Like,
+  depth: number,
+): boolean {
   for (let dy = 1; dy <= depth; dy += 1) {
     const seen = world.blockAt(above(from, -dy));
     if (!seen) return false;
@@ -192,8 +196,7 @@ export function lowHealthReflex(
       const dx = self.position.x - from.x;
       const dz = self.position.z - from.z;
       const len = Math.hypot(dx, dz);
-      const unit =
-        len === 0 ? { x: 1, z: 0 } : { x: dx / len, z: dz / len };
+      const unit = len === 0 ? { x: 1, z: 0 } : { x: dx / len, z: dz / len };
       await ctx.act.moveTo(
         {
           x: self.position.x + unit.x * thresholds.fleeDistance,

@@ -186,7 +186,9 @@ function evalTask(overrides: Partial<Task> = {}): Task {
     version: '1.0.0',
     tags: [],
     difficulty: 'easy',
-    goal: overrides.goal ?? 'inventory contains at least 1 items tagged minecraft:logs',
+    goal:
+      overrides.goal ??
+      'inventory contains at least 1 items tagged minecraft:logs',
     budget: overrides.budget ?? { maxSteps: 8, maxDurationMs: 10_000 },
     profile: overrides.profile ?? 'fair-play',
     impossible: overrides.impossible ?? false,
@@ -244,7 +246,9 @@ describe('goal checking', () => {
   });
 
   it('strips the minecraft namespace so suite and world names meet', () => {
-    const parsed = parseGoal('inventory contains at least 2 minecraft:cobblestone');
+    const parsed = parseGoal(
+      'inventory contains at least 2 minecraft:cobblestone',
+    );
     expect(parsed).toMatchObject({
       ok: true,
       predicate: { kind: 'item-count', item: 'cobblestone', count: 2 },
@@ -259,7 +263,9 @@ describe('goal checking', () => {
         { name: 'stone', count: 9 },
       ],
     });
-    const parsed = parseGoal('inventory contains at least 5 items tagged minecraft:logs');
+    const parsed = parseGoal(
+      'inventory contains at least 5 items tagged minecraft:logs',
+    );
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     expect(checkPredicate(parsed.predicate, world)).toMatchObject({
@@ -275,7 +281,9 @@ describe('goal checking', () => {
       // harness's eyesight rather than the agent's.
       hidden: [{ name: 'oak_log', count: 99 }],
     });
-    const parsed = parseGoal('inventory contains at least 8 items tagged minecraft:logs');
+    const parsed = parseGoal(
+      'inventory contains at least 8 items tagged minecraft:logs',
+    );
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
 
@@ -301,7 +309,9 @@ describe('goal checking', () => {
     );
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
-    expect(checkPredicate(parsed.predicate, world)).toMatchObject({ met: true });
+    expect(checkPredicate(parsed.predicate, world)).toMatchObject({
+      met: true,
+    });
     expect(world.reads).toContain('findBlocks');
   });
 
@@ -344,9 +354,7 @@ describe('createLiveExecutor', () => {
   it('scores an exhausted step budget as timeout', async () => {
     const world = new FakeWorld();
     const executor = createLiveExecutor({
-      policy: new ScriptPolicy([
-        { kind: 'skill', name: 'explore', input: {} },
-      ]),
+      policy: new ScriptPolicy([{ kind: 'skill', name: 'explore', input: {} }]),
       session: () => session(world),
     });
 
@@ -362,13 +370,19 @@ describe('createLiveExecutor', () => {
     const world = new FakeWorld();
     const controller = new AbortController();
     const executor = createLiveExecutor({
-      policy: new ScriptPolicy([{ kind: 'skill', name: 'explore', input: {} }], (step) => {
-        if (step === 1) controller.abort(new Error('time budget expired'));
-      }),
+      policy: new ScriptPolicy(
+        [{ kind: 'skill', name: 'explore', input: {} }],
+        (step) => {
+          if (step === 1) controller.abort(new Error('time budget expired'));
+        },
+      ),
       session: () => session(world),
     });
 
-    const outcome = await executor(evalTask(), context({ signal: controller.signal }));
+    const outcome = await executor(
+      evalTask(),
+      context({ signal: controller.signal }),
+    );
     expect(outcome.kind).toBe('timeout');
   });
 
@@ -391,7 +405,8 @@ describe('createLiveExecutor', () => {
       policy: new ScriptPolicy([
         {
           kind: 'done',
-          reason: 'impossible: bedrock is unbreakable in survival and drops no item',
+          reason:
+            'impossible: bedrock is unbreakable in survival and drops no item',
         },
       ]),
       session: () => session(world),
@@ -447,9 +462,9 @@ describe('createLiveExecutor', () => {
     // The loop stopped on budget, so this is a timeout, but the vocabulary test
     // itself has to see the speech.
     expect(outcome.kind).toBe('timeout');
-    expect(declaresImpossible('there is no such item as an obsidian sword')).toBe(
-      true,
-    );
+    expect(
+      declaresImpossible('there is no such item as an obsidian sword'),
+    ).toBe(true);
   });
 
   it('scores a throw as error', async () => {

@@ -1,4 +1,9 @@
-import type { Decision, Policy, PolicyInput, SkillDescriptor } from './policy.js';
+import type {
+  Decision,
+  Policy,
+  PolicyInput,
+  SkillDescriptor,
+} from './policy.js';
 import { describeOutcome, doneDecision } from './policy.js';
 
 /**
@@ -132,9 +137,7 @@ export function buildPrompt(
     sections.push(`== last step ==\n${describeOutcome(input.lastOutcome)}`);
   }
 
-  sections.push(
-    `== budget ==\nstep ${input.step + 1} of ${input.stepBudget}`,
-  );
+  sections.push(`== budget ==\nstep ${input.step + 1} of ${input.stepBudget}`);
 
   sections.push('Reply with one JSON decision object and nothing else.');
 
@@ -232,8 +235,12 @@ function decisionFrom(
     return undefined;
   }
   const o = value as Record<string, unknown>;
-  const kind = (str(o['kind']) ?? str(o['action']) ?? str(o['type']) ?? '')
-    .toLowerCase();
+  const kind = (
+    str(o['kind']) ??
+    str(o['action']) ??
+    str(o['type']) ??
+    ''
+  ).toLowerCase();
 
   // Tolerate the shapes models reach for unprompted.
   const name =

@@ -7,7 +7,10 @@ import type { WorldMemory } from '../perception/memory.js';
 import type { ReliabilityTracker } from '../skills/reliability.js';
 import type { MemorySnapshotOptions } from './memory-codec.js';
 import { restoreWorldMemory, snapshotWorldMemory } from './memory-codec.js';
-import { restoreReliability, snapshotReliability } from './reliability-codec.js';
+import {
+  restoreReliability,
+  snapshotReliability,
+} from './reliability-codec.js';
 import type { Snapshot } from './snapshot.js';
 import { SCHEMA_VERSION } from './snapshot.js';
 

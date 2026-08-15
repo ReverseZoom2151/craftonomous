@@ -6,7 +6,15 @@ import {
   goToPosition,
   lookAt,
 } from '../../../src/skills/library/movement.js';
-import { OK, at, block, entity, harness, precondition, refuse } from './harness.js';
+import {
+  OK,
+  at,
+  block,
+  entity,
+  harness,
+  precondition,
+  refuse,
+} from './harness.js';
 
 describe('goToPosition', () => {
   it('walks to the target and reports where the body ended up', async () => {
@@ -22,7 +30,10 @@ describe('goToPosition', () => {
 
   it('does nothing when already inside the tolerance', async () => {
     const h = harness({ body: { position: at(3, 64, 0) } });
-    const result = await goToPosition.run(h.ctx, { position: at(3, 64, 0.5), range: 2 });
+    const result = await goToPosition.run(h.ctx, {
+      position: at(3, 64, 0.5),
+      range: 2,
+    });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -76,7 +87,9 @@ describe('goToPosition', () => {
         },
       },
     );
-    const result = await goToPosition.run(slow.ctx, { position: at(10, 64, 0) });
+    const result = await goToPosition.run(slow.ctx, {
+      position: at(10, 64, 0),
+    });
 
     // A manual clock that only moves inside the actuator: any use of
     // Date.now() would show up here as a non-750 duration.
@@ -87,7 +100,10 @@ describe('goToPosition', () => {
 describe('goToBlock', () => {
   it('walks to the nearest known block of that name', async () => {
     const h = harness({
-      blocks: [block('iron_ore', at(12, 64, 0)), block('iron_ore', at(4, 64, 0))],
+      blocks: [
+        block('iron_ore', at(12, 64, 0)),
+        block('iron_ore', at(4, 64, 0)),
+      ],
     });
     const result = await goToBlock.run(h.ctx, { name: 'iron_ore' });
 
@@ -147,7 +163,10 @@ describe('goToBlock', () => {
 describe('goToEntity', () => {
   it('approaches the nearest matching entity', async () => {
     const h = harness({
-      entities: [entity(1, 'cow', at(9, 64, 0)), entity(2, 'cow', at(3, 64, 0))],
+      entities: [
+        entity(1, 'cow', at(9, 64, 0)),
+        entity(2, 'cow', at(3, 64, 0)),
+      ],
     });
     const result = await goToEntity.run(h.ctx, { name: 'cow' });
 
@@ -159,7 +178,10 @@ describe('goToEntity', () => {
   it('matches players by username', async () => {
     const h = harness({
       entities: [
-        entity(7, 'player', at(5, 64, 0), { kind: 'player', username: 'Steve' }),
+        entity(7, 'player', at(5, 64, 0), {
+          kind: 'player',
+          username: 'Steve',
+        }),
       ],
     });
     const check = await precondition(goToEntity, h.ctx, { name: 'steve' });
@@ -231,7 +253,10 @@ describe('lookAt', () => {
 describe('flee', () => {
   it('retreats until the threat is far enough away', async () => {
     const h = harness();
-    const result = await flee.run(h.ctx, { position: at(0, 64, 0), minDistance: 10 });
+    const result = await flee.run(h.ctx, {
+      position: at(0, 64, 0),
+      minDistance: 10,
+    });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -241,7 +266,10 @@ describe('flee', () => {
 
   it('does not move when already clear', async () => {
     const h = harness({ body: { position: at(30, 64, 0) } });
-    const result = await flee.run(h.ctx, { position: at(0, 64, 0), minDistance: 10 });
+    const result = await flee.run(h.ctx, {
+      position: at(0, 64, 0),
+      minDistance: 10,
+    });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -251,7 +279,10 @@ describe('flee', () => {
 
   it('flees from a named entity', async () => {
     const h = harness({ entities: [entity(3, 'creeper', at(2, 64, 0))] });
-    const result = await flee.run(h.ctx, { entityName: 'creeper', minDistance: 12 });
+    const result = await flee.run(h.ctx, {
+      entityName: 'creeper',
+      minDistance: 12,
+    });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -270,7 +301,10 @@ describe('flee', () => {
   it('fails unreachable when cornered', async () => {
     // The mover reports success but the body never gets clear: a dead end.
     const h = harness({}, { moveTo: () => OK });
-    const result = await flee.run(h.ctx, { position: at(1, 64, 0), minDistance: 16 });
+    const result = await flee.run(h.ctx, {
+      position: at(1, 64, 0),
+      minDistance: 16,
+    });
 
     expect(result.ok).toBe(false);
     if (result.ok) return;

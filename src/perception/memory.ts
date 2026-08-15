@@ -115,7 +115,9 @@ export class WorldMemory {
   }
 
   #expired(entry: Observed<BlockInfo>): boolean {
-    return this.#expiry !== undefined && this.#expiry.hasExpired(entry.sensedAt);
+    return (
+      this.#expiry !== undefined && this.#expiry.hasExpired(entry.sensedAt)
+    );
   }
 
   /**

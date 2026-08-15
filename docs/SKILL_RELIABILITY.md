@@ -34,15 +34,15 @@ Craftonomous ranks and gates on the lower bound of the Wilson score interval at
                         1 + z²/n
 ```
 
-It answers a different question: *given this evidence, what is the success rate
-plausibly at least?* Thin evidence is penalised rather than flattered.
+It answers a different question: _given this evidence, what is the success rate
+plausibly at least?_ Thin evidence is penalised rather than flattered.
 
-| Record | Observed rate | Wilson lower bound |
-|---|---|---|
-| 1 / 1 | 1.00 | ≈ 0.21 |
-| 5 / 5 | 1.00 | ≈ 0.57 |
-| 50 / 50 | 1.00 | ≈ 0.93 |
-| 38 / 40 | 0.95 | ≈ 0.84 |
+| Record  | Observed rate | Wilson lower bound |
+| ------- | ------------- | ------------------ |
+| 1 / 1   | 1.00          | ≈ 0.21             |
+| 5 / 5   | 1.00          | ≈ 0.57             |
+| 50 / 50 | 1.00          | ≈ 0.93             |
+| 38 / 40 | 0.95          | ≈ 0.84             |
 
 The last two rows are the point. A skill with one lucky success ranks below a
 skill with 38 successes out of 40, which is the ordering an agent should act on.

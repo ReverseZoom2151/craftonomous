@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
 import type { Vec3Like } from '../../src/embodiment/geometry.js';
-import type { ActuationOutcome, ActuatorPort } from '../../src/embodiment/port.js';
+import type {
+  ActuationOutcome,
+  ActuatorPort,
+} from '../../src/embodiment/port.js';
 import type {
   BlockInfo,
   BodyState,
@@ -207,7 +210,10 @@ describe('ReflexArbiter', () => {
 
   it('keeps its list sorted by descending priority as reflexes are added', () => {
     const arbiter = new ReflexArbiter();
-    arbiter.add(stubReflex('c', 1)).add(stubReflex('a', 100)).add(stubReflex('b', 50));
+    arbiter
+      .add(stubReflex('c', 1))
+      .add(stubReflex('a', 100))
+      .add(stubReflex('b', 50));
     expect(arbiter.list().map((r) => r.name)).toEqual(['a', 'b', 'c']);
     expect(arbiter.size).toBe(3);
   });
@@ -262,7 +268,9 @@ describe('builtin reflexes', () => {
     expect(r.shouldFire(fakeWorld({ body: { oxygen: 0 } }))).toBe(false);
 
     const act = new RecordingActuator();
-    await r.act(reflexCtx(fakeWorld({ body: { inWater: true, oxygen: 1 } }), act));
+    await r.act(
+      reflexCtx(fakeWorld({ body: { inWater: true, oxygen: 1 } }), act),
+    );
     expect(act.names).toEqual(['stop', 'moveTo']);
   });
 
@@ -366,12 +374,15 @@ describe('builtin reflexes', () => {
     const r = starvingReflex();
     expect(
       r.shouldFire(
-        fakeWorld({ body: { food: 1 }, inventory: [{ name: 'cobblestone', count: 64 }] }),
+        fakeWorld({
+          body: { food: 1 },
+          inventory: [{ name: 'cobblestone', count: 64 }],
+        }),
       ),
     ).toBe(false);
-    expect(r.shouldFire(fakeWorld({ inventory: [{ name: 'bread', count: 1 }] }))).toBe(
-      false,
-    );
+    expect(
+      r.shouldFire(fakeWorld({ inventory: [{ name: 'bread', count: 1 }] })),
+    ).toBe(false);
   });
 
   it('ranks lava and drowning above low health', () => {
@@ -389,7 +400,9 @@ describe('builtin reflexes', () => {
       arbiter.evaluate(fakeWorld({ body: { ...dying, inLava: false } }))?.name,
     ).toBe('drowning');
     expect(REFLEX_PRIORITY.IN_LAVA).toBeGreaterThan(REFLEX_PRIORITY.LOW_HEALTH);
-    expect(REFLEX_PRIORITY.DROWNING).toBeGreaterThan(REFLEX_PRIORITY.LOW_HEALTH);
+    expect(REFLEX_PRIORITY.DROWNING).toBeGreaterThan(
+      REFLEX_PRIORITY.LOW_HEALTH,
+    );
   });
 
   it('leaves a healthy agent alone', () => {

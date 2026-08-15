@@ -148,7 +148,11 @@ export interface MineflayerBotLike {
   ): MfRecipe[];
   openContainer(block: MfBlock): Promise<MfWindow>;
   closeWindow(window: MfWindow): void;
-  withdraw?: (itemType: number, metadata: number | null, count: number) => Promise<void>;
+  withdraw?: (
+    itemType: number,
+    metadata: number | null,
+    count: number,
+  ) => Promise<void>;
   chat(message: string): void;
   /**
    * Ask the server to respawn a dead body. Optional because older mineflayer
@@ -161,7 +165,10 @@ export interface MineflayerBotLike {
   quit(reason?: string): void;
   on(event: string, listener: (...args: unknown[]) => void): void;
   once(event: string, listener: (...args: unknown[]) => void): void;
-  removeListener?: (event: string, listener: (...args: unknown[]) => void) => void;
+  removeListener?: (
+    event: string,
+    listener: (...args: unknown[]) => void,
+  ) => void;
 }
 
 /** Factory for whatever vector type the upstream library expects to receive. */
@@ -187,7 +194,11 @@ export function blockIsSolid(block: MfBlock | null | undefined): boolean {
   if (block.boundingBox !== undefined && block.boundingBox !== null) {
     return block.boundingBox === 'block';
   }
-  return block.name !== 'air' && block.name !== 'cave_air' && block.name !== 'void_air';
+  return (
+    block.name !== 'air' &&
+    block.name !== 'cave_air' &&
+    block.name !== 'void_air'
+  );
 }
 
 function toBlockInfo(block: MfBlock | null | undefined): BlockInfo | undefined {
@@ -314,12 +325,14 @@ export class MineflayerSensorPort implements SensorPort {
       });
     });
 
-    const message = (isPrivate: boolean) => (...args: unknown[]) => {
-      const from = args[0];
-      const text = args[1];
-      if (typeof from !== 'string' || typeof text !== 'string') return;
-      pushBounded(this.#chat, { from, text, private: isPrivate });
-    };
+    const message =
+      (isPrivate: boolean) =>
+      (...args: unknown[]) => {
+        const from = args[0];
+        const text = args[1];
+        if (typeof from !== 'string' || typeof text !== 'string') return;
+        pushBounded(this.#chat, { from, text, private: isPrivate });
+      };
     this.bot.on('chat', message(false));
     this.bot.on('whisper', message(true));
   }
@@ -336,7 +349,8 @@ export class MineflayerSensorPort implements SensorPort {
 
   body(): BodyState {
     const entity = this.bot.entity;
-    const position = entity === undefined ? { x: 0, y: 0, z: 0 } : point(entity.position);
+    const position =
+      entity === undefined ? { x: 0, y: 0, z: 0 } : point(entity.position);
     return {
       position,
       eyePosition: { x: position.x, y: position.y + EYE_HEIGHT, z: position.z },
@@ -364,7 +378,8 @@ export class MineflayerSensorPort implements SensorPort {
       if (entity === undefined) continue;
       // The bot's own entity is proprioception, not sight; it is excluded here
       // so it cannot be double-counted as a sighting of somebody else.
-      if (this.bot.entity !== undefined && entity.id === this.bot.entity.id) continue;
+      if (this.bot.entity !== undefined && entity.id === this.bot.entity.id)
+        continue;
       out.push(toEntityInfo(entity));
     }
     return out;
@@ -379,7 +394,8 @@ export class MineflayerSensorPort implements SensorPort {
     const out: Record<string, ItemStack | undefined> = {};
     for (const [name, index] of EQUIPMENT_SLOTS) {
       const item = slots[index];
-      out[name] = item === null || item === undefined ? undefined : toItemStack(item);
+      out[name] =
+        item === null || item === undefined ? undefined : toItemStack(item);
     }
     return out;
   }
@@ -492,7 +508,10 @@ export class MineflayerActuatorPort implements ActuatorPort {
 
   async lookAt(position: Vec3Like): Promise<ActuationOutcome> {
     try {
-      await this.bot.lookAt(this.vec3(position.x, position.y, position.z), true);
+      await this.bot.lookAt(
+        this.vec3(position.x, position.y, position.z),
+        true,
+      );
       return ok();
     } catch (error) {
       return fail(describe(error));
@@ -516,7 +535,9 @@ export class MineflayerActuatorPort implements ActuatorPort {
     signal?.addEventListener('abort', abort, { once: true });
     try {
       await this.bot.dig(block);
-      return signal?.aborted === true ? fail('aborted') : ok(stripNamespace(block.name));
+      return signal?.aborted === true
+        ? fail('aborted')
+        : ok(stripNamespace(block.name));
     } catch (error) {
       if (signal?.aborted === true) return fail('aborted');
       return fail(describe(error));
@@ -550,7 +571,9 @@ export class MineflayerActuatorPort implements ActuatorPort {
 
   async equip(item: string, destination?: string): Promise<ActuationOutcome> {
     const wanted = stripNamespace(item);
-    const held = this.bot.inventory.items().find((i) => stripNamespace(i.name) === wanted);
+    const held = this.bot.inventory
+      .items()
+      .find((i) => stripNamespace(i.name) === wanted);
     if (held === undefined) return fail(`no ${wanted} in inventory`);
     try {
       await this.bot.equip(held, destination ?? 'hand');
@@ -584,7 +607,9 @@ export class MineflayerActuatorPort implements ActuatorPort {
 
   async dropItem(item: string, count = 1): Promise<ActuationOutcome> {
     const wanted = stripNamespace(item);
-    const held = this.bot.inventory.items().find((i) => stripNamespace(i.name) === wanted);
+    const held = this.bot.inventory
+      .items()
+      .find((i) => stripNamespace(i.name) === wanted);
     if (held === undefined || held.type === undefined) {
       return fail(`no ${wanted} in inventory`);
     }
@@ -682,7 +707,8 @@ export class MineflayerActuatorPort implements ActuatorPort {
     if (entry === undefined) return fail(`unknown item ${item}`);
 
     const move = direction === 'withdraw' ? window.withdraw : window.deposit;
-    if (move === undefined) return fail(`container does not support ${direction}`);
+    if (move === undefined)
+      return fail(`container does not support ${direction}`);
     try {
       await move.call(window, entry.id, null, count);
       return ok();
@@ -719,8 +745,10 @@ export class MineflayerActuatorPort implements ActuatorPort {
 
 function containerKind(name: string): ContainerView['kind'] {
   const n = stripNamespace(name);
-  if (n.includes('chest') || n.includes('barrel') || n.includes('shulker')) return 'chest';
-  if (n.includes('furnace') || n === 'smoker' || n === 'blast_furnace') return 'furnace';
+  if (n.includes('chest') || n.includes('barrel') || n.includes('shulker'))
+    return 'chest';
+  if (n.includes('furnace') || n === 'smoker' || n === 'blast_furnace')
+    return 'furnace';
   if (n === 'crafting_table') return 'crafting_table';
   return 'other';
 }
@@ -892,12 +920,20 @@ interface PluginLoaderLike {
  * `https://sessionserver.mojang.com/blockedservers`. We do not consult it, so a
  * blocked host fails at join time with whatever the server says.
  */
-export async function connect(options: ConnectOptions): Promise<EmbodimentPort> {
+export async function connect(
+  options: ConnectOptions,
+): Promise<EmbodimentPort> {
   const log = options.logger ?? silentLogger;
-  const requested: ReconnectPolicy = { ...DEFAULT_RECONNECT, ...options.reconnect };
+  const requested: ReconnectPolicy = {
+    ...DEFAULT_RECONNECT,
+    ...options.reconnect,
+  };
   const policy: ReconnectPolicy = {
     ...requested,
-    maxAttempts: Math.min(MAX_JOIN_ATTEMPTS, Math.max(1, requested.maxAttempts)),
+    maxAttempts: Math.min(
+      MAX_JOIN_ATTEMPTS,
+      Math.max(1, requested.maxAttempts),
+    ),
     initialDelayMs: Math.max(MIN_RETRY_DELAY_MS, requested.initialDelayMs),
   };
   const attempts = policy.enabled ? policy.maxAttempts : 1;
@@ -921,7 +957,10 @@ export async function connect(options: ConnectOptions): Promise<EmbodimentPort> 
         throw authError;
       }
       lastError = error;
-      log.error('connection attempt failed', { attempt, error: describe(error) });
+      log.error('connection attempt failed', {
+        attempt,
+        error: describe(error),
+      });
     }
   }
   throw new Error(
@@ -933,7 +972,8 @@ async function attemptConnect(
   options: ConnectOptions,
   log: Logger,
 ): Promise<EmbodimentPort> {
-  const mineflayer = (await import('mineflayer')) as unknown as MineflayerModuleLike;
+  const mineflayer =
+    (await import('mineflayer')) as unknown as MineflayerModuleLike;
   const vec3Module = (await import('vec3')) as unknown as Vec3ModuleLike;
   const vec3: Vec3Factory = (x, y, z) => new vec3Module.Vec3(x, y, z);
 
@@ -950,7 +990,8 @@ async function attemptConnect(
   let goals: PathfinderGoals | undefined;
   if (options.usePathfinder !== false) {
     try {
-      const pf = (await import('mineflayer-pathfinder')) as unknown as PathfinderModuleLike;
+      const pf =
+        (await import('mineflayer-pathfinder')) as unknown as PathfinderModuleLike;
       (raw as PluginLoaderLike).loadPlugin(pf.pathfinder);
       goals = {
         near: (x, y, z, range) => new pf.goals.GoalNear(x, y, z, range),
@@ -968,7 +1009,10 @@ async function attemptConnect(
   return new MineflayerEmbodiment(bot, vec3, goals, log);
 }
 
-function waitForSpawn(bot: MineflayerBotLike, timeoutMs: number): Promise<void> {
+function waitForSpawn(
+  bot: MineflayerBotLike,
+  timeoutMs: number,
+): Promise<void> {
   return new Promise((resolve, reject) => {
     let settled = false;
     const finish = (error?: unknown) => {

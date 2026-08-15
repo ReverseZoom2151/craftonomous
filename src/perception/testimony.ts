@@ -96,8 +96,14 @@ export class TestimonyRegister {
   readonly #maxSpeakers: number;
 
   constructor(options: TestimonyRegisterOptions = {}) {
-    this.#maxSightings = Math.max(1, options.maxSightingsPerSpeaker ?? DEFAULT_MAX_SIGHTINGS);
-    this.#maxSpeakers = Math.max(1, options.maxSpeakers ?? DEFAULT_MAX_SPEAKERS);
+    this.#maxSightings = Math.max(
+      1,
+      options.maxSightingsPerSpeaker ?? DEFAULT_MAX_SIGHTINGS,
+    );
+    this.#maxSpeakers = Math.max(
+      1,
+      options.maxSpeakers ?? DEFAULT_MAX_SPEAKERS,
+    );
   }
 
   /** Note that the agent saw this speaker here, at this moment. */

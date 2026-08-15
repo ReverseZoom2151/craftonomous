@@ -45,7 +45,7 @@ export const digBlock: Skill<DigBlockInput, DigBlockOutput> = {
     'The precondition requires the space to be *known*: a coordinate the',
     'agent has never sensed fails rather than swinging blindly at fog. Digging',
     'a block that changed between the check and the swing fails',
-    '`world-changed`; a block outside arm\'s reach fails `unreachable`, and the',
+    "`world-changed`; a block outside arm's reach fails `unreachable`, and the",
     'remedy there is `goToPosition` first.',
     'Do not use this to gather a quantity of something; `collectBlock` finds,',
     'approaches and repeats.',
@@ -63,7 +63,9 @@ export const digBlock: Skill<DigBlockInput, DigBlockOutput> = {
     }
     if (isAirLike(seen.value.name)) {
       return Promise.resolve(
-        fails(`${show(input.position)} holds ${seen.value.name}, which cannot be dug`),
+        fails(
+          `${show(input.position)} holds ${seen.value.name}, which cannot be dug`,
+        ),
       );
     }
     if (input.expect !== undefined && seen.value.name !== input.expect) {
@@ -77,7 +79,11 @@ export const digBlock: Skill<DigBlockInput, DigBlockOutput> = {
   },
   run: (ctx, input) =>
     guarded(ctx, async (elapsed) => {
-      const interrupted = interruptCheck<DigBlockOutput>(ctx, elapsed, 'before digging');
+      const interrupted = interruptCheck<DigBlockOutput>(
+        ctx,
+        elapsed,
+        'before digging',
+      );
       if (interrupted) return interrupted;
 
       const seen = ctx.world.blockAt(input.position);
@@ -111,7 +117,11 @@ export const digBlock: Skill<DigBlockInput, DigBlockOutput> = {
       const before = inventoryCounts(ctx);
       const outcome = await ctx.act.dig(input.position, { signal: ctx.signal });
       if (!outcome.ok) {
-        const stopped = interruptCheck<DigBlockOutput>(ctx, elapsed, 'while digging');
+        const stopped = interruptCheck<DigBlockOutput>(
+          ctx,
+          elapsed,
+          'while digging',
+        );
         if (stopped) return stopped;
         return fail(
           'unknown',
@@ -192,7 +202,11 @@ export const collectBlock: Skill<CollectBlockInput, CollectBlockOutput> = {
       // candidate, so allow slack without ever looping unboundedly.
       const maxAttempts = wanted * 3;
 
-      for (let attempt = 0; attempt < maxAttempts && dug < wanted; attempt += 1) {
+      for (
+        let attempt = 0;
+        attempt < maxAttempts && dug < wanted;
+        attempt += 1
+      ) {
         const stopped = interruptCheck<CollectBlockOutput>(
           ctx,
           elapsed,
@@ -206,7 +220,11 @@ export const collectBlock: Skill<CollectBlockInput, CollectBlockOutput> = {
           if (lastFailure) {
             // Something was known a moment ago and is not any more; that is a
             // different remedy from never having sensed one at all.
-            return fail('world-changed', `broke no ${input.name}: ${lastFailure}`, elapsed());
+            return fail(
+              'world-changed',
+              `broke no ${input.name}: ${lastFailure}`,
+              elapsed(),
+            );
           }
           return fail(
             'unreachable',
@@ -253,6 +271,9 @@ export const collectBlock: Skill<CollectBlockInput, CollectBlockOutput> = {
           elapsed(),
         );
       }
-      return succeed({ name: input.name, requested: wanted, dug, collected }, elapsed());
+      return succeed(
+        { name: input.name, requested: wanted, dug, collected },
+        elapsed(),
+      );
     }),
 };

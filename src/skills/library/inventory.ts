@@ -4,7 +4,14 @@ import { HOLDS, fail, fails, succeed } from '../types.js';
 import { guarded, heldCount, interruptCheck } from './support.js';
 
 /** Where an item can be worn or held. */
-const destinationSchema = z.enum(['hand', 'off-hand', 'head', 'torso', 'legs', 'feet']);
+const destinationSchema = z.enum([
+  'hand',
+  'off-hand',
+  'head',
+  'torso',
+  'legs',
+  'feet',
+]);
 
 /* ------------------------------------------------------------------ */
 /* equipItem                                                           */
@@ -46,11 +53,19 @@ export const equipItem: Skill<EquipItemInput, EquipItemOutput> = {
   run: (ctx, input) =>
     guarded(ctx, async (elapsed) => {
       const destination = input.destination ?? 'hand';
-      const interrupted = interruptCheck<EquipItemOutput>(ctx, elapsed, 'before equipping');
+      const interrupted = interruptCheck<EquipItemOutput>(
+        ctx,
+        elapsed,
+        'before equipping',
+      );
       if (interrupted) return interrupted;
 
       if (heldCount(ctx, input.item) < 1) {
-        return fail('precondition', `no ${input.item} in the inventory`, elapsed());
+        return fail(
+          'precondition',
+          `no ${input.item} in the inventory`,
+          elapsed(),
+        );
       }
       const outcome = await ctx.act.equip(input.item, destination);
       if (!outcome.ok) {
@@ -104,11 +119,19 @@ export const consumeItem: Skill<ConsumeItemInput, ConsumeItemOutput> = {
     ),
   run: (ctx, input) =>
     guarded(ctx, async (elapsed) => {
-      const interrupted = interruptCheck<ConsumeItemOutput>(ctx, elapsed, 'before consuming');
+      const interrupted = interruptCheck<ConsumeItemOutput>(
+        ctx,
+        elapsed,
+        'before consuming',
+      );
       if (interrupted) return interrupted;
 
       if (heldCount(ctx, input.item) < 1) {
-        return fail('precondition', `no ${input.item} in the inventory`, elapsed());
+        return fail(
+          'precondition',
+          `no ${input.item} in the inventory`,
+          elapsed(),
+        );
       }
       const before = ctx.world.body().value;
       const outcome = await ctx.act.consume(input.item);
@@ -116,7 +139,8 @@ export const consumeItem: Skill<ConsumeItemInput, ConsumeItemOutput> = {
         return fail(
           'precondition',
           `could not consume ${input.item}: ${
-            outcome.detail ?? 'the body refused it, which usually means a full food bar'
+            outcome.detail ??
+            'the body refused it, which usually means a full food bar'
           }`,
           elapsed(),
         );
@@ -171,17 +195,24 @@ export const dropItem: Skill<DropItemInput, DropItemOutput> = {
   output: dropItemOutput,
   precondition: (ctx, input) => {
     const have = heldCount(ctx, input.item);
-    if (have < 1) return Promise.resolve(fails(`no ${input.item} in the inventory`));
+    if (have < 1)
+      return Promise.resolve(fails(`no ${input.item} in the inventory`));
     if (input.count !== undefined && have < input.count) {
       return Promise.resolve(
-        fails(`carrying ${have} ${input.item}, short of the ${input.count} requested`),
+        fails(
+          `carrying ${have} ${input.item}, short of the ${input.count} requested`,
+        ),
       );
     }
     return Promise.resolve(HOLDS);
   },
   run: (ctx, input) =>
     guarded(ctx, async (elapsed) => {
-      const interrupted = interruptCheck<DropItemOutput>(ctx, elapsed, 'before dropping');
+      const interrupted = interruptCheck<DropItemOutput>(
+        ctx,
+        elapsed,
+        'before dropping',
+      );
       if (interrupted) return interrupted;
 
       const before = heldCount(ctx, input.item);
@@ -209,6 +240,9 @@ export const dropItem: Skill<DropItemInput, DropItemOutput> = {
           elapsed(),
         );
       }
-      return succeed({ item: input.item, requested: wanted, dropped }, elapsed());
+      return succeed(
+        { item: input.item, requested: wanted, dropped },
+        elapsed(),
+      );
     }),
 };

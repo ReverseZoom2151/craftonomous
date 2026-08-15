@@ -104,9 +104,7 @@ export function decodeSnapshot(raw: unknown, source: string): Snapshot {
 
   const savedAtRaw = root['savedAt'];
   const savedAt =
-    savedAtRaw === undefined
-      ? 0
-      : requireNumber(savedAtRaw, source, 'savedAt');
+    savedAtRaw === undefined ? 0 : requireNumber(savedAtRaw, source, 'savedAt');
 
   return {
     version,
@@ -122,7 +120,10 @@ function decodeMemory(raw: unknown, source: string): MemorySnapshot {
   const list = section['observations'];
   if (list === undefined || list === null) return { observations: [] };
   if (!Array.isArray(list)) {
-    throw new SnapshotFormatError(source, 'memory.observations must be an array');
+    throw new SnapshotFormatError(
+      source,
+      'memory.observations must be an array',
+    );
   }
   return {
     observations: list.map((entry, i) =>
@@ -146,7 +147,11 @@ function decodeObservation(
 
 function decodeBlock(raw: unknown, source: string, where: string): BlockInfo {
   const block = requireObject(raw, source, where);
-  const position = requireObject(block['position'], source, `${where}.position`);
+  const position = requireObject(
+    block['position'],
+    source,
+    `${where}.position`,
+  );
   const lightLevel = block['lightLevel'];
   const hardness = block['hardness'];
   return {
@@ -161,7 +166,9 @@ function decodeBlock(raw: unknown, source: string, where: string): BlockInfo {
     // becoming an explicit undefined, which exactOptionalPropertyTypes forbids.
     ...(lightLevel === undefined || lightLevel === null
       ? {}
-      : { lightLevel: requireNumber(lightLevel, source, `${where}.lightLevel`) }),
+      : {
+          lightLevel: requireNumber(lightLevel, source, `${where}.lightLevel`),
+        }),
     ...(hardness === undefined || hardness === null
       ? {}
       : { hardness: requireNumber(hardness, source, `${where}.hardness`) }),
@@ -190,7 +197,10 @@ function decodeReliability(raw: unknown, source: string): ReliabilitySnapshot {
   const list = section['skills'];
   if (list === undefined || list === null) return { skills: [] };
   if (!Array.isArray(list)) {
-    throw new SnapshotFormatError(source, 'reliability.skills must be an array');
+    throw new SnapshotFormatError(
+      source,
+      'reliability.skills must be an array',
+    );
   }
   return {
     skills: list.map((entry, i) =>
@@ -273,7 +283,11 @@ function requireString(value: unknown, source: string, where: string): string {
   return value;
 }
 
-function requireBoolean(value: unknown, source: string, where: string): boolean {
+function requireBoolean(
+  value: unknown,
+  source: string,
+  where: string,
+): boolean {
   if (typeof value !== 'boolean') {
     throw new SnapshotFormatError(
       source,

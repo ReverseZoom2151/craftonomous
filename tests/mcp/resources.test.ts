@@ -126,7 +126,12 @@ class FakeWorldView implements WorldView {
 
   report(): PerceptionReport {
     return {
-      counts: counts({ proprioception: 4, sight: 12, memory: 3, privileged: 1 }),
+      counts: counts({
+        proprioception: 4,
+        sight: 12,
+        memory: 3,
+        privileged: 1,
+      }),
       total: 20,
       privileged: 1,
       privilegedShare: 0.05,
@@ -165,8 +170,7 @@ function catalogue(world: WorldView = new FakeWorldView()): {
 function read(catalog: ResourceCatalog, uri: string): Record<string, unknown> {
   const result = catalog.read(uri);
   const first = result.contents[0] as
-    | { uri: string; mimeType?: string; text?: string }
-    | undefined;
+    { uri: string; mimeType?: string; text?: string } | undefined;
   expect(first?.mimeType).toBe('application/json');
   expect(first?.uri).toBe(uri);
   return JSON.parse(String(first?.text)) as Record<string, unknown>;
@@ -181,14 +185,16 @@ describe('the resource list', () => {
       'craftonomous://perception',
       'craftonomous://skills',
     ]);
-    expect(listResources().every((r) => r.mimeType === 'application/json')).toBe(
-      true,
-    );
+    expect(
+      listResources().every((r) => r.mimeType === 'application/json'),
+    ).toBe(true);
   });
 
   it('refuses a URI it does not serve', () => {
     const { catalog } = catalogue();
-    expect(() => catalog.read('craftonomous://nether')).toThrow(UnknownResource);
+    expect(() => catalog.read('craftonomous://nether')).toThrow(
+      UnknownResource,
+    );
   });
 });
 

@@ -1,7 +1,11 @@
 import { z } from 'zod';
 import type { Vec3Like } from '../../embodiment/geometry.js';
 import { blockCentre, distance } from '../../embodiment/geometry.js';
-import type { BlockInfo, EntityInfo, ItemStack } from '../../embodiment/types.js';
+import type {
+  BlockInfo,
+  EntityInfo,
+  ItemStack,
+} from '../../embodiment/types.js';
 import type { Observed } from '../../observation/observed.js';
 import { PerceptionDenied } from '../../perception/gate.js';
 import type { SkillContext, SkillResult } from '../types.js';
@@ -121,7 +125,9 @@ export function bodyPosition(ctx: SkillContext): Vec3Like {
   return ctx.world.body().value.position;
 }
 
-export function inventoryCounts(ctx: SkillContext): ReadonlyMap<string, number> {
+export function inventoryCounts(
+  ctx: SkillContext,
+): ReadonlyMap<string, number> {
   const counts = new Map<string, number>();
   for (const stack of ctx.world.inventory().value) {
     counts.set(stack.name, (counts.get(stack.name) ?? 0) + stack.count);
@@ -191,7 +197,10 @@ export function nearestEntity(
   let bestDistance = Number.POSITIVE_INFINITY;
   for (const candidate of ctx.world.nearbyEntities({ maxDistance })) {
     const e = candidate.value;
-    if (e.name.toLowerCase() !== wanted && e.username?.toLowerCase() !== wanted) {
+    if (
+      e.name.toLowerCase() !== wanted &&
+      e.username?.toLowerCase() !== wanted
+    ) {
       continue;
     }
     const d = distance(from, e.position);
@@ -218,7 +227,9 @@ export async function moveWithin(
   ctx: SkillContext,
   target: Vec3Like,
   range: number,
-): Promise<{ readonly ok: true } | { readonly ok: false; readonly detail: string }> {
+): Promise<
+  { readonly ok: true } | { readonly ok: false; readonly detail: string }
+> {
   const outcome = await ctx.act.moveTo(target, { range, signal: ctx.signal });
   if (!outcome.ok) {
     return { ok: false, detail: outcome.detail ?? 'the pathfinder gave up' };

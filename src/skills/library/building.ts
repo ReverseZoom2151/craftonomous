@@ -86,14 +86,20 @@ export const placeBlock: Skill<PlaceBlockInput, PlaceBlockOutput> = {
     }
     if (!isAirLike(occupant.value.name)) {
       return Promise.resolve(
-        fails(`${show(destination)} is already occupied by ${occupant.value.name}`),
+        fails(
+          `${show(destination)} is already occupied by ${occupant.value.name}`,
+        ),
       );
     }
     return Promise.resolve(HOLDS);
   },
   run: (ctx, input) =>
     guarded(ctx, async (elapsed) => {
-      const interrupted = interruptCheck<PlaceBlockOutput>(ctx, elapsed, 'before placing');
+      const interrupted = interruptCheck<PlaceBlockOutput>(
+        ctx,
+        elapsed,
+        'before placing',
+      );
       if (interrupted) return interrupted;
 
       const destination = add(input.against, input.face);
@@ -118,13 +124,25 @@ export const placeBlock: Skill<PlaceBlockInput, PlaceBlockOutput> = {
       }
 
       if (heldCount(ctx, input.item) < 1) {
-        return fail('precondition', `no ${input.item} in the inventory`, elapsed());
+        return fail(
+          'precondition',
+          `no ${input.item} in the inventory`,
+          elapsed(),
+        );
       }
 
       await ctx.act.lookAt(blockCentre(destination));
-      const outcome = await ctx.act.placeBlock(input.against, input.face, input.item);
+      const outcome = await ctx.act.placeBlock(
+        input.against,
+        input.face,
+        input.item,
+      );
       if (!outcome.ok) {
-        const stopped = interruptCheck<PlaceBlockOutput>(ctx, elapsed, 'while placing');
+        const stopped = interruptCheck<PlaceBlockOutput>(
+          ctx,
+          elapsed,
+          'while placing',
+        );
         if (stopped) return stopped;
         return fail(
           'unknown',
@@ -145,7 +163,11 @@ export const placeBlock: Skill<PlaceBlockInput, PlaceBlockOutput> = {
       }
 
       return succeed(
-        { item: input.item, position: destination, confirmed: placed !== undefined },
+        {
+          item: input.item,
+          position: destination,
+          confirmed: placed !== undefined,
+        },
         elapsed(),
       );
     }),

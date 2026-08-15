@@ -14,7 +14,9 @@ describe('sendChat', () => {
         },
       },
     );
-    const result = await sendChat.run(h.ctx, { message: 'heading to the mine' });
+    const result = await sendChat.run(h.ctx, {
+      message: 'heading to the mine',
+    });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -33,7 +35,10 @@ describe('sendChat', () => {
         },
       },
     );
-    const result = await sendChat.run(h.ctx, { message: 'on my way', to: 'Steve' });
+    const result = await sendChat.run(h.ctx, {
+      message: 'on my way',
+      to: 'Steve',
+    });
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -46,7 +51,9 @@ describe('sendChat', () => {
     // planner get there by writing a sentence would make the perception
     // profile advisory.
     const h = harness();
-    const check = await precondition(sendChat, h.ctx, { message: '/gamemode creative' });
+    const check = await precondition(sendChat, h.ctx, {
+      message: '/gamemode creative',
+    });
 
     expect(check.holds).toBe(false);
     if (check.holds) return;

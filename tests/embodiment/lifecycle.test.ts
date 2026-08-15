@@ -42,7 +42,8 @@ function stubBot(options: { readonly canRespawn?: boolean } = {}) {
   return {
     bot,
     emit(event: string, ...args: unknown[]): void {
-      for (const listener of [...(listeners.get(event) ?? [])]) listener(...args);
+      for (const listener of [...(listeners.get(event) ?? [])])
+        listener(...args);
     },
     get respawns(): number {
       return respawns;
@@ -116,9 +117,9 @@ describe('reconnect rate limiting', () => {
     const attempts = events.filter((e) => e.kind === 'reconnecting');
     expect(attempts).toHaveLength(MAX_JOIN_ATTEMPTS);
     for (const attempt of attempts) {
-      expect(attempt.kind === 'reconnecting' && attempt.delayMs).toBeGreaterThanOrEqual(
-        MIN_RETRY_DELAY_MS,
-      );
+      expect(
+        attempt.kind === 'reconnecting' && attempt.delayMs,
+      ).toBeGreaterThanOrEqual(MIN_RETRY_DELAY_MS);
     }
     // Five joins inside thirty seconds is the limit; this schedule is slower.
     expect(time.now()).toBeGreaterThan(JOIN_WINDOW_MS);
@@ -146,7 +147,9 @@ describe('reconnect rate limiting', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     const first = events.find((e) => e.kind === 'reconnecting');
-    expect(first?.kind === 'reconnecting' && first.delayMs).toBe(JOIN_WINDOW_MS);
+    expect(first?.kind === 'reconnecting' && first.delayMs).toBe(
+      JOIN_WINDOW_MS,
+    );
     expect(events.some((e) => e.kind === 'reconnected')).toBe(true);
   });
 
@@ -181,7 +184,9 @@ describe('intentional close', () => {
     expect(events.filter((e) => e.kind === 'reconnecting')).toHaveLength(0);
     const disconnects = events.filter((e) => e.kind === 'disconnected');
     expect(disconnects).toHaveLength(1);
-    expect(disconnects[0]?.kind === 'disconnected' && disconnects[0].intentional).toBe(true);
+    expect(
+      disconnects[0]?.kind === 'disconnected' && disconnects[0].intentional,
+    ).toBe(true);
   });
 
   it('treats a drop nobody asked for as unintentional and reconnects', async () => {
@@ -199,8 +204,12 @@ describe('intentional close', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     const disconnected = events.find((e) => e.kind === 'disconnected');
-    expect(disconnected?.kind === 'disconnected' && disconnected.intentional).toBe(false);
-    expect(disconnected?.kind === 'disconnected' && disconnected.reason).toMatch(/idle/);
+    expect(
+      disconnected?.kind === 'disconnected' && disconnected.intentional,
+    ).toBe(false);
+    expect(
+      disconnected?.kind === 'disconnected' && disconnected.reason,
+    ).toMatch(/idle/);
     expect(supervisor.generation).toBe(2);
   });
 
@@ -243,7 +252,9 @@ describe('reconnect consequences', () => {
     await new Promise((resolve) => setImmediate(resolve));
 
     const reconnected = events.find((e) => e.kind === 'reconnected');
-    expect(reconnected?.kind === 'reconnected' && reconnected.generation).toBe(2);
+    expect(reconnected?.kind === 'reconnected' && reconnected.generation).toBe(
+      2,
+    );
     expect(supervisor.bot).toBe(next.bot);
 
     // The new bot is watched too, so a second drop is handled the same way.
@@ -278,7 +289,11 @@ describe('death and respawn', () => {
 
     stub.emit('respawn');
     expect(supervisor.status).toBe('alive');
-    expect(events.map((e) => e.kind)).toEqual(['death', 'respawn-requested', 'respawned']);
+    expect(events.map((e) => e.kind)).toEqual([
+      'death',
+      'respawn-requested',
+      'respawned',
+    ]);
   });
 
   it('reports the death first even when respawning automatically', () => {
@@ -318,7 +333,10 @@ describe('death and respawn', () => {
 
   it('counts repeated deaths', () => {
     const stub = stubBot();
-    const supervisor = new SessionSupervisor({ bot: stub.bot, respawn: 'auto' });
+    const supervisor = new SessionSupervisor({
+      bot: stub.bot,
+      respawn: 'auto',
+    });
     for (let i = 0; i < 3; i += 1) {
       stub.emit('death');
       stub.emit('respawn');

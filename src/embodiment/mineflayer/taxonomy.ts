@@ -163,7 +163,8 @@ export function classifyEntity(input: {
   if (type === 'animal' || type === 'passive' || type === 'water_creature') {
     return { kind: 'animal', hostile: false };
   }
-  if (type === 'mob' || type === 'living') return { kind: 'mob', hostile: false };
+  if (type === 'mob' || type === 'living')
+    return { kind: 'mob', hostile: false };
   if (OBJECT_TYPES.has(type) || OBJECT_TYPES.has(name)) {
     return { kind: 'object', hostile: false };
   }

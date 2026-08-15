@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { FakeWorld, createFakeEmbodiment } from '../../src/embodiment/fake/index.js';
+import {
+  FakeWorld,
+  createFakeEmbodiment,
+} from '../../src/embodiment/fake/index.js';
 import type { FakeEmbodiment } from '../../src/embodiment/fake/index.js';
 import { PerceptionGate } from '../../src/perception/gate.js';
 import { FAIR_PLAY, XRAY } from '../../src/perception/profile.js';
@@ -65,7 +68,10 @@ describe('FakeWorld', () => {
   it('moves the eyes with the feet unless told otherwise', () => {
     world.setBody({ position: { x: 10, y: 70, z: -4 } });
     expect(world.body().eyePosition).toEqual({ x: 10, y: 71.62, z: -4 });
-    world.setBody({ position: { x: 0, y: 0, z: 0 }, eyePosition: { x: 9, y: 9, z: 9 } });
+    world.setBody({
+      position: { x: 0, y: 0, z: 0 },
+      eyePosition: { x: 9, y: 9, z: 9 },
+    });
     expect(world.body().eyePosition).toEqual({ x: 9, y: 9, z: 9 });
   });
 
@@ -102,7 +108,9 @@ describe('FakeSensorPort', () => {
 
   it('sees a target on the near side of the wall', () => {
     const embodiment = createFakeEmbodiment(walledWorld());
-    expect(embodiment.sensors.isOccluded(EYE, { x: 2.5, y: 65.5, z: 0.5 })).toBe(false);
+    expect(
+      embodiment.sensors.isOccluded(EYE, { x: 2.5, y: 65.5, z: 0.5 }),
+    ).toBe(false);
   });
 
   it('reports entities and inventory without filtering', () => {
@@ -177,10 +185,16 @@ describe('FakeActuatorPort', () => {
   });
 
   it('refuses to dig air, unloaded chunks and out-of-reach blocks', async () => {
-    expect((await embodiment.actuators.dig({ x: 1, y: 65, z: 0 })).ok).toBe(false);
+    expect((await embodiment.actuators.dig({ x: 1, y: 65, z: 0 })).ok).toBe(
+      false,
+    );
     world.setUnloaded({ x: 3, y: 66, z: 0 });
-    expect((await embodiment.actuators.dig({ x: 3, y: 66, z: 0 })).ok).toBe(false);
-    expect((await embodiment.actuators.dig({ x: 3, y: 65, z: 200 })).ok).toBe(false);
+    expect((await embodiment.actuators.dig({ x: 3, y: 66, z: 0 })).ok).toBe(
+      false,
+    );
+    expect((await embodiment.actuators.dig({ x: 3, y: 65, z: 200 })).ok).toBe(
+      false,
+    );
   });
 
   it('teleports the body on moveTo and stops short when given a range', async () => {
@@ -189,7 +203,9 @@ describe('FakeActuatorPort', () => {
     expect(world.body().eyePosition.y).toBeCloseTo(65.62);
 
     await embodiment.actuators.moveTo({ x: 0.5, y: 64, z: 0.5 }, { range: 4 });
-    expect(distance(world.body().position, { x: 0.5, y: 64, z: 0.5 })).toBeCloseTo(4);
+    expect(
+      distance(world.body().position, { x: 0.5, y: 64, z: 0.5 }),
+    ).toBeCloseTo(4);
   });
 
   it('refuses to move when the signal is already aborted', async () => {
@@ -247,14 +263,20 @@ describe('FakeActuatorPort', () => {
       ],
       requiresTable: true,
     });
-    expect((await embodiment.actuators.craft('diamond_sword', 1)).ok).toBe(false);
-    expect((await embodiment.actuators.craft('stone_pickaxe', 1)).ok).toBe(false);
+    expect((await embodiment.actuators.craft('diamond_sword', 1)).ok).toBe(
+      false,
+    );
+    expect((await embodiment.actuators.craft('stone_pickaxe', 1)).ok).toBe(
+      false,
+    );
 
     world.setInventory([
       { name: 'cobblestone', count: 3 },
       { name: 'stick', count: 2 },
     ]);
-    expect((await embodiment.actuators.craft('stone_pickaxe', 1)).ok).toBe(false);
+    expect((await embodiment.actuators.craft('stone_pickaxe', 1)).ok).toBe(
+      false,
+    );
     const withTable = await embodiment.actuators.craft('stone_pickaxe', 1, {
       craftingTable: { x: 1, y: 64, z: 0 },
     });
@@ -280,12 +302,18 @@ describe('FakeActuatorPort', () => {
   });
 
   it('moves items in and out of a container', async () => {
-    world.setContainer({ x: 1, y: 64, z: 0 }, 'chest', [{ name: 'coal', count: 10 }]);
+    world.setContainer({ x: 1, y: 64, z: 0 }, 'chest', [
+      { name: 'coal', count: 10 },
+    ]);
     world.setInventory([{ name: 'oak_log', count: 4 }]);
 
     expect((await embodiment.actuators.withdraw('coal', 2)).ok).toBe(false);
 
-    const view = await embodiment.actuators.openContainer({ x: 1, y: 64, z: 0 });
+    const view = await embodiment.actuators.openContainer({
+      x: 1,
+      y: 64,
+      z: 0,
+    });
     expect(view?.kind).toBe('chest');
     expect(view?.contents[0]).toEqual({ name: 'coal', count: 10 });
 
@@ -315,7 +343,9 @@ describe('FakeActuatorPort', () => {
 
     expect((await embodiment.actuators.dropItem('bread', 1)).ok).toBe(true);
     expect(world.countItem('bread')).toBe(0);
-    expect(embodiment.sensors.entities().some((e) => e.kind === 'item')).toBe(true);
+    expect(embodiment.sensors.entities().some((e) => e.kind === 'item')).toBe(
+      true,
+    );
   });
 
   it('turns the body towards a target on lookAt', async () => {

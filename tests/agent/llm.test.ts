@@ -23,7 +23,11 @@ function input(
   const clock = new ManualClock(500_000);
   const world = new FakeWorld(clock);
   world.remembered = [
-    obs(block('iron_ore', { x: 12, y: 40, z: -3 }), 'memory', clock.now() - 240_000),
+    obs(
+      block('iron_ore', { x: 12, y: 40, z: -3 }),
+      'memory',
+      clock.now() - 240_000,
+    ),
   ];
   const goals = new GoalStack({ clock });
   if (overrides.goal !== undefined) goals.push(overrides.goal);
@@ -88,7 +92,9 @@ describe('buildPrompt', () => {
 
 describe('parseDecision', () => {
   it('parses a bare JSON decision', () => {
-    expect(parseDecision('{"kind":"skill","name":"dig","input":{"depth":3}}')).toEqual({
+    expect(
+      parseDecision('{"kind":"skill","name":"dig","input":{"depth":3}}'),
+    ).toEqual({
       kind: 'skill',
       name: 'dig',
       input: { depth: 3 },
@@ -143,9 +149,12 @@ describe('parseDecision', () => {
   });
 
   it('rejects a skill outside the catalogue', () => {
-    const decision = parseDecision('{"kind":"skill","name":"nuke","input":{}}', {
-      knownSkills: ['dig'],
-    });
+    const decision = parseDecision(
+      '{"kind":"skill","name":"nuke","input":{}}',
+      {
+        knownSkills: ['dig'],
+      },
+    );
     expect(decision.kind).toBe('done');
   });
 

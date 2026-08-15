@@ -7,7 +7,9 @@ describe('digBlock precondition', () => {
     // The block may well be there. The agent does not know that, and treating
     // unknown as diggable would be an inference it has not earned.
     const h = harness();
-    const check = await precondition(digBlock, h.ctx, { position: at(1, 64, 0) });
+    const check = await precondition(digBlock, h.ctx, {
+      position: at(1, 64, 0),
+    });
 
     expect(check.holds).toBe(false);
     if (check.holds) return;
@@ -16,7 +18,9 @@ describe('digBlock precondition', () => {
 
   it('refuses air', async () => {
     const h = harness({ blocks: [block('air', at(1, 64, 0), false)] });
-    const check = await precondition(digBlock, h.ctx, { position: at(1, 64, 0) });
+    const check = await precondition(digBlock, h.ctx, {
+      position: at(1, 64, 0),
+    });
 
     expect(check.holds).toBe(false);
     if (check.holds) return;
@@ -37,7 +41,9 @@ describe('digBlock precondition', () => {
 
   it('holds for a known solid block', async () => {
     const h = harness({ blocks: [block('stone', at(1, 64, 0))] });
-    const check = await precondition(digBlock, h.ctx, { position: at(1, 64, 0) });
+    const check = await precondition(digBlock, h.ctx, {
+      position: at(1, 64, 0),
+    });
     expect(check.holds).toBe(true);
   });
 });
@@ -76,7 +82,9 @@ describe('digBlock', () => {
 
   it('fails world-changed when the block goes between the check and the swing', async () => {
     const h = harness({ blocks: [block('stone', at(1, 64, 0))] });
-    const check = await precondition(digBlock, h.ctx, { position: at(1, 64, 0) });
+    const check = await precondition(digBlock, h.ctx, {
+      position: at(1, 64, 0),
+    });
     expect(check.holds).toBe(true);
 
     h.world.setBlock(block('air', at(1, 64, 0), false));
@@ -88,7 +96,7 @@ describe('digBlock', () => {
     expect(h.body.calls).not.toContain('dig');
   });
 
-  it('fails unreachable when the block is out of arm\'s reach', async () => {
+  it("fails unreachable when the block is out of arm's reach", async () => {
     const h = harness({ blocks: [block('stone', at(20, 64, 0))] });
     const result = await digBlock.run(h.ctx, { position: at(20, 64, 0) });
 
@@ -99,7 +107,10 @@ describe('digBlock', () => {
   });
 
   it('does not believe a dig that left the block standing', async () => {
-    const h = harness({ blocks: [block('bedrock', at(1, 64, 0))] }, { dig: () => OK });
+    const h = harness(
+      { blocks: [block('bedrock', at(1, 64, 0))] },
+      { dig: () => OK },
+    );
     const result = await digBlock.run(h.ctx, { position: at(1, 64, 0) });
 
     expect(result.ok).toBe(false);
@@ -195,7 +206,10 @@ describe('collectBlock', () => {
   it('stops mid-haul when the caller cancels', async () => {
     const h = harness(
       {
-        blocks: [block('oak_log', at(1, 64, 0)), block('oak_log', at(2, 64, 0))],
+        blocks: [
+          block('oak_log', at(1, 64, 0)),
+          block('oak_log', at(2, 64, 0)),
+        ],
       },
       {
         dig: (position) => {

@@ -199,7 +199,8 @@ export class ReliabilityTracker {
     });
     // Bound the memory. Dropping from the front discards the oldest evidence,
     // which is the evidence the window would have discounted anyway.
-    if (log.length > this.#maxEvents) log.splice(0, log.length - this.#maxEvents);
+    if (log.length > this.#maxEvents)
+      log.splice(0, log.length - this.#maxEvents);
     this.#attempts.set(skill, log);
   }
 

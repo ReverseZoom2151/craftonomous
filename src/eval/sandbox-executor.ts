@@ -239,7 +239,9 @@ export function createSandboxExecutor(
         ...(deps.stopOnRefusal === undefined
           ? {}
           : { stopOnRefusal: deps.stopOnRefusal }),
-        ...(scenario.recipes === undefined ? {} : { recipes: scenario.recipes }),
+        ...(scenario.recipes === undefined
+          ? {}
+          : { recipes: scenario.recipes }),
       });
     } catch (error) {
       return finish(

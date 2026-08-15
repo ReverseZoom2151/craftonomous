@@ -99,7 +99,9 @@ describe('sense', () => {
 describe('sight and sound', () => {
   it('returns undefined rather than a value when out of range', () => {
     const { gate } = gateFor();
-    expect(gate.sight('ore', { distance: 100, occluded: false })).toBeUndefined();
+    expect(
+      gate.sight('ore', { distance: 100, occluded: false }),
+    ).toBeUndefined();
     expect(gate.sound('footstep', 100)).toBeUndefined();
   });
 
@@ -112,7 +114,9 @@ describe('sight and sound', () => {
 
   it('counts a sighting that succeeded', () => {
     const { gate } = gateFor();
-    expect(gate.sight('ore', { distance: 4, occluded: false })?.value).toBe('ore');
+    expect(gate.sight('ore', { distance: 4, occluded: false })?.value).toBe(
+      'ore',
+    );
     expect(gate.ledger.report().counts.sight).toBe(1);
   });
 });

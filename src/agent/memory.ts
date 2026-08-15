@@ -16,12 +16,7 @@ import type { Clock } from '../runtime/clock.js';
  */
 
 export type TurnRole =
-  | 'system'
-  | 'user'
-  | 'agent'
-  | 'observation'
-  | 'action'
-  | 'outcome';
+  'system' | 'user' | 'agent' | 'observation' | 'action' | 'outcome';
 
 export interface Turn {
   readonly role: TurnRole;
@@ -169,7 +164,10 @@ export class AgentMemory {
 
   /** Fold everything currently live, e.g. at the end of an episode. */
   compact(): void {
-    const folded = this.#turns.slice(0, Math.max(0, this.#turns.length - this.#keepRecent));
+    const folded = this.#turns.slice(
+      0,
+      Math.max(0, this.#turns.length - this.#keepRecent),
+    );
     if (folded.length === 0) return;
     this.#turns = this.#turns.slice(folded.length);
     this.#chars = this.#turns.reduce((n, t) => n + t.text.length, 0);

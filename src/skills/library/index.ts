@@ -7,7 +7,13 @@ import { craftItem, smeltItem } from './crafting.js';
 import { explore } from './exploration.js';
 import { consumeItem, dropItem, equipItem } from './inventory.js';
 import { collectBlock, digBlock } from './mining.js';
-import { flee, goToBlock, goToEntity, goToPosition, lookAt } from './movement.js';
+import {
+  flee,
+  goToBlock,
+  goToEntity,
+  goToPosition,
+  lookAt,
+} from './movement.js';
 import { sendChat } from './social.js';
 
 export * from './building.js';

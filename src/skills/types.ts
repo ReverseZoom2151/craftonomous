@@ -73,8 +73,7 @@ export function fail<T>(
 
 /** Outcome of a precondition check. */
 export type PreconditionResult =
-  | { readonly holds: true }
-  | { readonly holds: false; readonly reason: string };
+  { readonly holds: true } | { readonly holds: false; readonly reason: string };
 
 export const HOLDS: PreconditionResult = { holds: true };
 

@@ -160,7 +160,10 @@ class TokenBucket {
       return;
     }
     const elapsed = now - this.#updatedAt;
-    this.#tokens = Math.min(this.#rule.limit, this.#tokens + elapsed * this.#rate);
+    this.#tokens = Math.min(
+      this.#rule.limit,
+      this.#tokens + elapsed * this.#rate,
+    );
     this.#updatedAt = now;
   }
 
@@ -206,7 +209,10 @@ export class RateLimiter {
   readonly #perTool = new Map<string, TokenBucket>();
 
   constructor(options: RateLimiterOptions = {}) {
-    this.#globalRule = checkRule(options.global ?? DEFAULT_GLOBAL_RULE, 'global');
+    this.#globalRule = checkRule(
+      options.global ?? DEFAULT_GLOBAL_RULE,
+      'global',
+    );
     this.#perToolRule = checkRule(
       options.perTool ?? DEFAULT_PER_TOOL_RULE,
       'per-tool',

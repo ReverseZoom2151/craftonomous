@@ -89,10 +89,13 @@ export const depositItems: Skill<ContainerSkillInput, ContainerSkillOutput> = {
     if (!block.holds) return Promise.resolve(block);
     for (const item of input.items) {
       const have = heldCount(ctx, item.name);
-      if (have < 1) return Promise.resolve(fails(`no ${item.name} in the inventory`));
+      if (have < 1)
+        return Promise.resolve(fails(`no ${item.name} in the inventory`));
       if (item.count !== undefined && have < item.count) {
         return Promise.resolve(
-          fails(`carrying ${have} ${item.name}, short of the ${item.count} requested`),
+          fails(
+            `carrying ${have} ${item.name}, short of the ${item.count} requested`,
+          ),
         );
       }
     }
@@ -100,14 +103,22 @@ export const depositItems: Skill<ContainerSkillInput, ContainerSkillOutput> = {
   },
   run: (ctx, input) =>
     guarded(ctx, async (elapsed) => {
-      const interrupted = interruptCheck<ContainerSkillOutput>(ctx, elapsed, 'before depositing');
+      const interrupted = interruptCheck<ContainerSkillOutput>(
+        ctx,
+        elapsed,
+        'before depositing',
+      );
       if (interrupted) return interrupted;
 
       const centre = blockCentre(input.position);
       if (distance(bodyPosition(ctx), centre) > 3) {
         const moved = await moveWithin(ctx, centre, 3);
         if (!moved.ok) {
-          const stopped = interruptCheck<ContainerSkillOutput>(ctx, elapsed, 'while approaching');
+          const stopped = interruptCheck<ContainerSkillOutput>(
+            ctx,
+            elapsed,
+            'while approaching',
+          );
           if (stopped) return stopped;
           return fail(
             'unreachable',
@@ -127,10 +138,15 @@ export const depositItems: Skill<ContainerSkillInput, ContainerSkillOutput> = {
       }
 
       try {
-        const results: { name: string; requested: number; moved: number }[] = [];
+        const results: { name: string; requested: number; moved: number }[] =
+          [];
         let total = 0;
         for (const item of input.items) {
-          const stopped = interruptCheck<ContainerSkillOutput>(ctx, elapsed, 'part way through');
+          const stopped = interruptCheck<ContainerSkillOutput>(
+            ctx,
+            elapsed,
+            'part way through',
+          );
           if (stopped) return stopped;
 
           const before = heldCount(ctx, item.name);
@@ -153,7 +169,12 @@ export const depositItems: Skill<ContainerSkillInput, ContainerSkillOutput> = {
           );
         }
         return succeed(
-          { position: input.position, kind: opened.kind, items: results, total },
+          {
+            position: input.position,
+            kind: opened.kind,
+            items: results,
+            total,
+          },
           elapsed(),
         );
       } finally {
@@ -183,17 +204,26 @@ export const withdrawItems: Skill<ContainerSkillInput, ContainerSkillOutput> = {
   ].join(' '),
   input: containerInput,
   output: containerOutput,
-  precondition: (ctx, input) => Promise.resolve(checkContainerBlock(ctx, input.position)),
+  precondition: (ctx, input) =>
+    Promise.resolve(checkContainerBlock(ctx, input.position)),
   run: (ctx, input) =>
     guarded(ctx, async (elapsed) => {
-      const interrupted = interruptCheck<ContainerSkillOutput>(ctx, elapsed, 'before withdrawing');
+      const interrupted = interruptCheck<ContainerSkillOutput>(
+        ctx,
+        elapsed,
+        'before withdrawing',
+      );
       if (interrupted) return interrupted;
 
       const centre = blockCentre(input.position);
       if (distance(bodyPosition(ctx), centre) > 3) {
         const moved = await moveWithin(ctx, centre, 3);
         if (!moved.ok) {
-          const stopped = interruptCheck<ContainerSkillOutput>(ctx, elapsed, 'while approaching');
+          const stopped = interruptCheck<ContainerSkillOutput>(
+            ctx,
+            elapsed,
+            'while approaching',
+          );
           if (stopped) return stopped;
           return fail(
             'unreachable',
@@ -215,23 +245,36 @@ export const withdrawItems: Skill<ContainerSkillInput, ContainerSkillOutput> = {
       try {
         const view = ctx.world.openContainer();
         const contents = view ? view.value.contents : opened.contents;
-        const results: { name: string; requested: number; moved: number }[] = [];
+        const results: { name: string; requested: number; moved: number }[] =
+          [];
         let total = 0;
 
         for (const item of input.items) {
-          const stopped = interruptCheck<ContainerSkillOutput>(ctx, elapsed, 'part way through');
+          const stopped = interruptCheck<ContainerSkillOutput>(
+            ctx,
+            elapsed,
+            'part way through',
+          );
           if (stopped) return stopped;
 
           const available = countOf(contents, item.name);
           const wanted = Math.min(item.count ?? available, available);
           if (wanted < 1) {
-            results.push({ name: item.name, requested: item.count ?? 0, moved: 0 });
+            results.push({
+              name: item.name,
+              requested: item.count ?? 0,
+              moved: 0,
+            });
             continue;
           }
           const before = heldCount(ctx, item.name);
           const outcome = await ctx.act.withdraw(item.name, wanted);
           const moved = outcome.ok ? heldCount(ctx, item.name) - before : 0;
-          results.push({ name: item.name, requested: item.count ?? wanted, moved });
+          results.push({
+            name: item.name,
+            requested: item.count ?? wanted,
+            moved,
+          });
           total += moved;
         }
 
@@ -245,7 +288,12 @@ export const withdrawItems: Skill<ContainerSkillInput, ContainerSkillOutput> = {
           );
         }
         return succeed(
-          { position: input.position, kind: opened.kind, items: results, total },
+          {
+            position: input.position,
+            kind: opened.kind,
+            items: results,
+            total,
+          },
           elapsed(),
         );
       } finally {

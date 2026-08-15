@@ -6,7 +6,10 @@ import { PerceptionAdapter } from '../../src/perception/adapter.js';
 import { PerceptionGate } from '../../src/perception/gate.js';
 import { WorldMemory } from '../../src/perception/memory.js';
 import { FAIR_PLAY } from '../../src/perception/profile.js';
-import { TestimonyRegister, unverified } from '../../src/perception/testimony.js';
+import {
+  TestimonyRegister,
+  unverified,
+} from '../../src/perception/testimony.js';
 import { ManualClock } from '../../src/runtime/clock.js';
 
 function setup() {
@@ -82,7 +85,11 @@ describe('chat as testimony', () => {
 });
 
 describe('TestimonyRegister', () => {
-  const claim = unverified({ from: 'Alex', text: 'diamonds down here', private: false });
+  const claim = unverified({
+    from: 'Alex',
+    text: 'diamonds down here',
+    private: false,
+  });
 
   it('says nothing either way about a speaker it has never seen', () => {
     const register = new TestimonyRegister();

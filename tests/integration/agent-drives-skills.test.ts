@@ -64,24 +64,21 @@ function validate(name: string, input: unknown) {
 }
 
 describe('the names RulePolicy reaches for exist in the library', () => {
-  it.each(
-    Object.entries(DEFAULT_RULE_SKILLS).filter(([role]) => role !== 'explore'),
-  )('%s maps to a registered skill', (_role, name) => {
-    expect(registry.has(name)).toBe(true);
-  });
-
-  it('explore is deliberately absent from the core library', () => {
-    // Named so a deployment can supply one; the catalogue check must skip it
-    // rather than emitting a call nothing can serve.
-    expect(registry.has(DEFAULT_RULE_SKILLS.explore)).toBe(false);
-  });
+  it.each(Object.entries(DEFAULT_RULE_SKILLS))(
+    '%s maps to a registered skill',
+    (_role, name) => {
+      expect(registry.has(name)).toBe(true);
+    },
+  );
 });
 
 describe('decisions validate against the real skill schemas', () => {
   it('produces a collectBlock call the skill accepts', async () => {
     const clock = new ManualClock(1000);
     const world = new FakeWorld(clock);
-    world.blocks = [obs(block('oak_log', { x: 3, y: 64, z: 0 }), 'sight', 1000)];
+    world.blocks = [
+      obs(block('oak_log', { x: 3, y: 64, z: 0 }), 'sight', 1000),
+    ];
 
     const d = await new RulePolicy().decide(
       policyInput(world, clock, 'gather 3 oak_log'),

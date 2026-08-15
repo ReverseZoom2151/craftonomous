@@ -93,13 +93,21 @@ describe('mineflayer sound and chat buffering', () => {
     const { bot, emit } = stubBot();
     const sensors = new MineflayerSensorPort(bot, vec3);
 
-    emit('soundEffectHeard', 'minecraft:entity.zombie.ambient', { x: 4, y: 64, z: 2 }, 0.8);
+    emit(
+      'soundEffectHeard',
+      'minecraft:entity.zombie.ambient',
+      { x: 4, y: 64, z: 2 },
+      0.8,
+    );
     emit('hardcodedSoundEffectHeard', 17, 3, { x: -2, y: 60, z: 0 }, 1);
     emit('chat', 'Alex', 'iron over here');
     emit('whisper', 'Steve', 'do not tell Alex');
 
     const sounds = sensors.drainSounds();
-    expect(sounds.map((s) => s.name)).toEqual(['entity.zombie.ambient', 'hardcoded_17']);
+    expect(sounds.map((s) => s.name)).toEqual([
+      'entity.zombie.ambient',
+      'hardcoded_17',
+    ]);
     expect(sounds[0]?.volume).toBe(0.8);
     expect(sounds[0]?.approximatePosition).toEqual({ x: 4, y: 64, z: 2 });
 
@@ -118,7 +126,13 @@ describe('mineflayer sound and chat buffering', () => {
     const sensors = new MineflayerSensorPort(bot, vec3);
 
     emit('soundEffectHeard', 'no.position.here', undefined, 1);
-    emit('hardcodedSoundEffectHeard', 'not a number', 0, { x: 0, y: 0, z: 0 }, 1);
+    emit(
+      'hardcodedSoundEffectHeard',
+      'not a number',
+      0,
+      { x: 0, y: 0, z: 0 },
+      1,
+    );
     emit('chat', 'Alex', { toString: () => 'an object, not a string' });
 
     expect(sensors.drainSounds()).toHaveLength(0);

@@ -36,15 +36,15 @@ Instead, privileged reads are **declared, enforced and counted**.
 
 Every fact handed to an agent is an `Observed<T>` carrying how it was obtained:
 
-| Provenance | Meaning |
-|---|---|
+| Provenance       | Meaning                                                   |
+| ---------------- | --------------------------------------------------------- |
 | `proprioception` | The agent's own body: position, health, hunger, inventory |
-| `sight` | Currently in range and unoccluded |
-| `hearing` | An audible event with a bearing but no exact source |
-| `memory` | Previously sensed, now recalled, possibly stale |
-| `inference` | Derived by rule from other observations |
-| `testimony` | Told to the agent by another agent or a human |
-| `privileged` | Read from game state in a way no player could achieve |
+| `sight`          | Currently in range and unoccluded                         |
+| `hearing`        | An audible event with a bearing but no exact source       |
+| `memory`         | Previously sensed, now recalled, possibly stale           |
+| `inference`      | Derived by rule from other observations                   |
+| `testimony`      | Told to the agent by another agent or a human             |
+| `privileged`     | Read from game state in a way no player could achieve     |
 
 Provenance combines pessimistically. A derived fact is no fresher and no more
 directly grounded than its weakest premise, so anything computed from a
@@ -56,11 +56,11 @@ a sufficiently clever agent implementation would otherwise do by accident.
 
 A `PerceptionProfile` declares the limits a run operates under.
 
-| Profile | Sight | Occlusion | Hearing | Memory | Privileged |
-|---|---|---|---|---|---|
-| `fair-play` | 64 blocks | enforced | 16 blocks | 10 minutes | denied |
-| `xray` | 64 blocks | ignored | 16 blocks | 10 minutes | denied |
-| `omniscient` | unlimited | ignored | unlimited | never fades | allowed |
+| Profile      | Sight     | Occlusion | Hearing   | Memory      | Privileged |
+| ------------ | --------- | --------- | --------- | ----------- | ---------- |
+| `fair-play`  | 64 blocks | enforced  | 16 blocks | 10 minutes  | denied     |
+| `xray`       | 64 blocks | ignored   | 16 blocks | 10 minutes  | denied     |
+| `omniscient` | unlimited | ignored   | unlimited | never fades | allowed    |
 
 `xray` exists to isolate planning from exploration: identical range, no
 occlusion. If an agent scores the same under `fair-play` and `xray`, its
@@ -84,8 +84,8 @@ would leave the agent mysteriously less capable with the cause buried several
 layers down. Failing loudly makes the profile's effect obvious at the moment it
 bites.
 
-Out-of-range sightings return `undefined`, meaning *not known*, which is
-different from *not there*. Neither a denied read nor an out-of-range one is
+Out-of-range sightings return `undefined`, meaning _not known_, which is
+different from _not there_. Neither a denied read nor an out-of-range one is
 counted, because neither happened.
 
 ### Line of sight

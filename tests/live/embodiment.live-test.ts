@@ -161,9 +161,10 @@ describe.skipIf(!LIVE)('live embodiment', () => {
 
     // Every direction being blocked is possible in principle, so the failure
     // message matters more than usual here.
-    expect(moved, 'the bot did not move in any of the four directions tried').toBeGreaterThan(
-      0.75,
-    );
+    expect(
+      moved,
+      'the bot did not move in any of the four directions tried',
+    ).toBeGreaterThan(0.75);
   });
 
   it('disconnects cleanly and stays disconnected', async () => {

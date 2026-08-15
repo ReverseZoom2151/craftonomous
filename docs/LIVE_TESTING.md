@@ -105,8 +105,7 @@ What it checks, in the order these things break:
 
 Configuration comes from the same environment variables as the CLI:
 `MINECRAFT_HOST`, `MINECRAFT_PORT`, `MINECRAFT_USERNAME`, `MINECRAFT_VERSION`
-and `MINECRAFT_AUTH`. `SMOKE_TIMEOUT_MS` caps the whole run and defaults to
-180000.
+and `MINECRAFT_AUTH`. `SMOKE_TIMEOUT_MS` caps the whole run and defaults to 180000.
 
 ## Run the live tests
 

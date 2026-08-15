@@ -57,7 +57,7 @@ export const craftItem: Skill<CraftItemInput, CraftItemOutput> = {
     '`maxDistance`, the agent walks to it and crafts against it, which unlocks',
     'the 3x3 recipes; otherwise it uses the 2x2 inventory grid.',
     'Success is measured as the net gain of `item` in the inventory, not the',
-    'actuator\'s say-so, so a call that reports success while producing nothing',
+    "actuator's say-so, so a call that reports success while producing nothing",
     'fails instead of quietly lying.',
     'Missing ingredients fail `precondition`: the remedy is to gather, not to',
     'retry. Requesting a table that is not known fails the precondition too;',
@@ -82,7 +82,11 @@ export const craftItem: Skill<CraftItemInput, CraftItemOutput> = {
     guarded(ctx, async (elapsed) => {
       const wanted = input.count ?? 1;
       const maxDistance = input.maxDistance ?? 8;
-      const interrupted = interruptCheck<CraftItemOutput>(ctx, elapsed, 'before crafting');
+      const interrupted = interruptCheck<CraftItemOutput>(
+        ctx,
+        elapsed,
+        'before crafting',
+      );
       if (interrupted) return interrupted;
 
       const table =
@@ -102,7 +106,11 @@ export const craftItem: Skill<CraftItemInput, CraftItemOutput> = {
         if (distance(bodyPosition(ctx), centre) > 3) {
           const moved = await moveWithin(ctx, centre, 3);
           if (!moved.ok) {
-            const stopped = interruptCheck<CraftItemOutput>(ctx, elapsed, 'while approaching the table');
+            const stopped = interruptCheck<CraftItemOutput>(
+              ctx,
+              elapsed,
+              'while approaching the table',
+            );
             if (stopped) return stopped;
             return fail(
               'unreachable',
@@ -120,7 +128,11 @@ export const craftItem: Skill<CraftItemInput, CraftItemOutput> = {
         table ? { craftingTable: table.value.position } : undefined,
       );
       if (!outcome.ok) {
-        const stopped = interruptCheck<CraftItemOutput>(ctx, elapsed, 'while crafting');
+        const stopped = interruptCheck<CraftItemOutput>(
+          ctx,
+          elapsed,
+          'while crafting',
+        );
         if (stopped) return stopped;
         return fail(
           'precondition',
@@ -235,7 +247,9 @@ export const smeltItem: Skill<SmeltItemInput, SmeltItemOutput> = {
     const have = heldCount(ctx, input.item);
     if (have < wanted) {
       return Promise.resolve(
-        fails(`carrying ${have} ${input.item}, which is short of the ${wanted} requested`),
+        fails(
+          `carrying ${have} ${input.item}, which is short of the ${wanted} requested`,
+        ),
       );
     }
     if (input.fuel !== undefined && heldCount(ctx, input.fuel) < 1) {
@@ -249,7 +263,11 @@ export const smeltItem: Skill<SmeltItemInput, SmeltItemOutput> = {
       const maxDistance = input.maxDistance ?? 8;
       const maxWaitMs = input.maxWaitMs ?? 20_000;
       const interval = input.pollIntervalMs ?? 500;
-      const interrupted = interruptCheck<SmeltItemOutput>(ctx, elapsed, 'before smelting');
+      const interrupted = interruptCheck<SmeltItemOutput>(
+        ctx,
+        elapsed,
+        'before smelting',
+      );
       if (interrupted) return interrupted;
 
       const furnace = nearestBlock(ctx, FURNACES, maxDistance);
@@ -266,7 +284,11 @@ export const smeltItem: Skill<SmeltItemInput, SmeltItemOutput> = {
       if (distance(bodyPosition(ctx), centre) > 3) {
         const moved = await moveWithin(ctx, centre, 3);
         if (!moved.ok) {
-          const stopped = interruptCheck<SmeltItemOutput>(ctx, elapsed, 'while approaching the furnace');
+          const stopped = interruptCheck<SmeltItemOutput>(
+            ctx,
+            elapsed,
+            'while approaching the furnace',
+          );
           if (stopped) return stopped;
           return fail(
             'unreachable',
@@ -278,7 +300,11 @@ export const smeltItem: Skill<SmeltItemInput, SmeltItemOutput> = {
 
       const opened = await ctx.act.openContainer(at);
       if (!opened) {
-        return fail('world-changed', `nothing opens at ${show(at)} any more`, elapsed());
+        return fail(
+          'world-changed',
+          `nothing opens at ${show(at)} any more`,
+          elapsed(),
+        );
       }
 
       try {
@@ -305,14 +331,27 @@ export const smeltItem: Skill<SmeltItemInput, SmeltItemOutput> = {
         const maxPolls = Math.ceil(maxWaitMs / Math.max(1, interval)) + 1;
         let made: { readonly name: string; readonly count: number } | undefined;
         for (let poll = 0; poll < maxPolls; poll += 1) {
-          const stopped = interruptCheck<SmeltItemOutput>(ctx, elapsed, 'while the furnace burned');
+          const stopped = interruptCheck<SmeltItemOutput>(
+            ctx,
+            elapsed,
+            'while the furnace burned',
+          );
           if (stopped) return stopped;
 
           const view = ctx.world.openContainer();
           if (!view) {
-            return fail('world-changed', `the furnace at ${show(at)} closed unexpectedly`, elapsed());
+            return fail(
+              'world-changed',
+              `the furnace at ${show(at)} closed unexpectedly`,
+              elapsed(),
+            );
           }
-          made = product(view.value.contents, input.item, input.fuel, input.output);
+          made = product(
+            view.value.contents,
+            input.item,
+            input.fuel,
+            input.output,
+          );
           if (made && made.count >= wanted) break;
           if (elapsed() >= maxWaitMs) break;
           await sleep(interval);

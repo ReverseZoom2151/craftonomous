@@ -151,7 +151,9 @@ describe('bounded growth', () => {
   });
 
   it('refuses a nonsensical cap', () => {
-    expect(() => new WorldMemory(new ManualClock(0), { maxEntries: 0 })).toThrow(RangeError);
+    expect(
+      () => new WorldMemory(new ManualClock(0), { maxEntries: 0 }),
+    ).toThrow(RangeError);
   });
 });
 

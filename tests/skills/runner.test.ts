@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
 import type { Vec3Like } from '../../src/embodiment/geometry.js';
-import type { ActuationOutcome, ActuatorPort } from '../../src/embodiment/port.js';
+import type {
+  ActuationOutcome,
+  ActuatorPort,
+} from '../../src/embodiment/port.js';
 import type { BodyState, ItemStack } from '../../src/embodiment/types.js';
 import { observe } from '../../src/observation/observed.js';
 import { PerceptionLedger } from '../../src/perception/ledger.js';
@@ -13,7 +16,11 @@ import { MemoryLogger } from '../../src/runtime/logger.js';
 import { SkillRegistry } from '../../src/skills/registry.js';
 import { ReliabilityTracker } from '../../src/skills/reliability.js';
 import { SkillRunner } from '../../src/skills/runner.js';
-import type { PreconditionResult, Skill, SkillContext } from '../../src/skills/types.js';
+import type {
+  PreconditionResult,
+  Skill,
+  SkillContext,
+} from '../../src/skills/types.js';
 import { HOLDS, fail, fails, succeed } from '../../src/skills/types.js';
 
 // ---------------------------------------------------------------------------
@@ -36,12 +43,16 @@ const BODY: BodyState = {
   dimension: 'overworld',
 };
 
-function fakeWorld(body: BodyState = BODY, inventory: ItemStack[] = []): WorldView {
+function fakeWorld(
+  body: BodyState = BODY,
+  inventory: ItemStack[] = [],
+): WorldView {
   const ledger = new PerceptionLedger();
   return {
     profile: FAIR_PLAY,
     body: () => observe(body, 'proprioception', 0),
-    inventory: () => observe(inventory as readonly ItemStack[], 'proprioception', 0),
+    inventory: () =>
+      observe(inventory as readonly ItemStack[], 'proprioception', 0),
     blockAt: () => undefined,
     nearbyEntities: () => [],
     findBlocks: () => [],
@@ -136,7 +147,9 @@ function makeSkill(overrides: SkillOverrides = {}): Skill<In, Out> {
     description: 'walks somewhere; not for climbing',
     input: Input,
     output: Output,
-    ...(overrides.timeoutMs === undefined ? {} : { timeoutMs: overrides.timeoutMs }),
+    ...(overrides.timeoutMs === undefined
+      ? {}
+      : { timeoutMs: overrides.timeoutMs }),
     run:
       overrides.run ??
       (async (ctx) => {
@@ -264,10 +277,14 @@ describe('SkillRunner', () => {
   it('reports an external abort as interrupted', async () => {
     const h = harness(makeSkill({ timeoutMs: 60_000, run: never }));
     const external = new AbortController();
-    const pending = h.runner.run('walk', { target: 'home' }, {
-      ...h.ctx,
-      signal: external.signal,
-    });
+    const pending = h.runner.run(
+      'walk',
+      { target: 'home' },
+      {
+        ...h.ctx,
+        signal: external.signal,
+      },
+    );
     external.abort();
     const r = await pending;
     expect(r.ok).toBe(false);
@@ -279,10 +296,14 @@ describe('SkillRunner', () => {
 
   it('refuses immediately when the caller signal is already aborted', async () => {
     const h = harness();
-    const r = await h.runner.run('walk', { target: 'home' }, {
-      ...h.ctx,
-      signal: AbortSignal.abort(),
-    });
+    const r = await h.runner.run(
+      'walk',
+      { target: 'home' },
+      {
+        ...h.ctx,
+        signal: AbortSignal.abort(),
+      },
+    );
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.kind).toBe('interrupted');
     expect(h.act.calls).toEqual([]);
@@ -303,10 +324,14 @@ describe('SkillRunner', () => {
       }),
     );
     const external = new AbortController();
-    const pending = h.runner.run('walk', { target: 'home' }, {
-      ...h.ctx,
-      signal: external.signal,
-    });
+    const pending = h.runner.run(
+      'walk',
+      { target: 'home' },
+      {
+        ...h.ctx,
+        signal: external.signal,
+      },
+    );
     external.abort();
     await pending;
     expect(sawAbort).toBe(true);
@@ -344,8 +369,7 @@ describe('SkillRunner', () => {
   it('fails when the output does not match the schema', async () => {
     const h = harness(
       makeSkill({
-        run: async () =>
-          succeed({ moved: 'yes' } as unknown as Out, 0),
+        run: async () => succeed({ moved: 'yes' } as unknown as Out, 0),
       }),
     );
     const r = await h.runner.run('walk', { target: 'home' }, h.ctx);
@@ -433,18 +457,15 @@ describe('SkillRunner', () => {
     );
     const kinds: string[] = [];
     for (let i = 0; i < 10; i += 1) {
-      const r = await h.runner.run(
-        'walk',
-        { target: 'home' },
-        h.ctx,
-        { allowRetired: true },
-      );
+      const r = await h.runner.run('walk', { target: 'home' }, h.ctx, {
+        allowRetired: true,
+      });
       if (!r.ok) kinds.push(r.message);
     }
     expect(kinds.filter((m) => m === 'no path')).toHaveLength(8);
-    expect(kinds.filter((m) => m.startsWith('repetition detected'))).toHaveLength(
-      2,
-    );
+    expect(
+      kinds.filter((m) => m.startsWith('repetition detected')),
+    ).toHaveLength(2);
   });
 
   it('does not trip repetition when the input changes', async () => {
@@ -452,12 +473,9 @@ describe('SkillRunner', () => {
       makeSkill({ run: async () => fail('unreachable', 'no path', 0) }),
     );
     for (let i = 0; i < 20; i += 1) {
-      const r = await h.runner.run(
-        'walk',
-        { target: `t${i}` },
-        h.ctx,
-        { allowRetired: true },
-      );
+      const r = await h.runner.run('walk', { target: `t${i}` }, h.ctx, {
+        allowRetired: true,
+      });
       expect(r.ok).toBe(false);
       if (!r.ok) expect(r.message).toBe('no path');
     }

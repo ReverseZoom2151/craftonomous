@@ -6,7 +6,11 @@ describe('attackEntity', () => {
   it('swings until the target stops being sensed', async () => {
     let swings = 0;
     const h = harness(
-      { entities: [entity(9, 'zombie', at(2, 64, 0), { health: 20, hostile: true })] },
+      {
+        entities: [
+          entity(9, 'zombie', at(2, 64, 0), { health: 20, hostile: true }),
+        ],
+      },
       {
         attack: () => {
           swings += 1;
@@ -84,7 +88,10 @@ describe('attackEntity', () => {
     const h = harness({
       entities: [entity(9, 'iron_golem', at(2, 64, 0), { health: 100 })],
     });
-    const result = await attackEntity.run(h.ctx, { name: 'iron_golem', maxSwings: 4 });
+    const result = await attackEntity.run(h.ctx, {
+      name: 'iron_golem',
+      maxSwings: 4,
+    });
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -96,7 +103,10 @@ describe('attackEntity', () => {
 
   it('fails unreachable when the target is far and approaching is forbidden', async () => {
     const h = harness({ entities: [entity(9, 'zombie', at(12, 64, 0))] });
-    const result = await attackEntity.run(h.ctx, { name: 'zombie', approach: false });
+    const result = await attackEntity.run(h.ctx, {
+      name: 'zombie',
+      approach: false,
+    });
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -127,7 +137,10 @@ describe('attackEntity', () => {
         },
       },
     );
-    const result = await attackEntity.run(h.ctx, { name: 'zombie', maxSwings: 10 });
+    const result = await attackEntity.run(h.ctx, {
+      name: 'zombie',
+      maxSwings: 10,
+    });
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -136,7 +149,10 @@ describe('attackEntity', () => {
   });
 
   it('rejects being given both a name and an id', () => {
-    const parsed = attackEntity.input.safeParse({ name: 'zombie', entityId: 3 });
+    const parsed = attackEntity.input.safeParse({
+      name: 'zombie',
+      entityId: 3,
+    });
     expect(parsed.success).toBe(false);
   });
 });

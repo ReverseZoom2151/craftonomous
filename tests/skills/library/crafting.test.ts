@@ -83,7 +83,10 @@ describe('craftItem', () => {
   });
 
   it('does not believe a craft that produced nothing', async () => {
-    const h = harness({ inventory: [{ name: 'oak_planks', count: 8 }] }, { craft: () => OK });
+    const h = harness(
+      { inventory: [{ name: 'oak_planks', count: 8 }] },
+      { craft: () => OK },
+    );
     const result = await craftItem.run(h.ctx, { item: 'stick' });
 
     expect(result.ok).toBe(false);
@@ -94,7 +97,11 @@ describe('craftItem', () => {
 });
 
 /** A furnace that turns whatever is loaded into ingots the moment it is fed. */
-function instantFurnace(position = at(2, 64, 0), output = 'iron_ingot', yield_ = 2) {
+function instantFurnace(
+  position = at(2, 64, 0),
+  output = 'iron_ingot',
+  yield_ = 2,
+) {
   const h = harness(
     {
       inventory: [
@@ -104,15 +111,25 @@ function instantFurnace(position = at(2, 64, 0), output = 'iron_ingot', yield_ =
       blocks: [block('furnace', position)],
     },
     {
-      openContainer: (p): ContainerView => ({ kind: 'furnace', position: p, contents: [] }),
+      openContainer: (p): ContainerView => ({
+        kind: 'furnace',
+        position: p,
+        contents: [],
+      }),
       deposit: (item, count) => {
         h.world.take(item, count);
         const view = h.world.container;
         if (!view) return refuse('no container open');
         if (item === 'raw_iron') {
-          h.world.setContainerContents([...view.contents, { name: output, count: yield_ }]);
+          h.world.setContainerContents([
+            ...view.contents,
+            { name: output, count: yield_ },
+          ]);
         } else {
-          h.world.setContainerContents([...view.contents, { name: item, count }]);
+          h.world.setContainerContents([
+            ...view.contents,
+            { name: item, count },
+          ]);
         }
         return OK;
       },
@@ -164,7 +181,11 @@ describe('smeltItem', () => {
         blocks: [block('furnace', at(2, 64, 0))],
       },
       {
-        openContainer: (p): ContainerView => ({ kind: 'furnace', position: p, contents: [] }),
+        openContainer: (p): ContainerView => ({
+          kind: 'furnace',
+          position: p,
+          contents: [],
+        }),
       },
     );
     const result = await smeltItem.run(h.ctx, {
@@ -192,7 +213,10 @@ describe('smeltItem', () => {
 
   it('fails its precondition when the input is not carried', async () => {
     const h = harness({ blocks: [block('furnace', at(2, 64, 0))] });
-    const check = await precondition(smeltItem, h.ctx, { item: 'raw_iron', count: 2 });
+    const check = await precondition(smeltItem, h.ctx, {
+      item: 'raw_iron',
+      count: 2,
+    });
 
     expect(check.holds).toBe(false);
     if (check.holds) return;
@@ -207,7 +231,11 @@ describe('smeltItem', () => {
       },
       { openContainer: () => undefined },
     );
-    const result = await smeltItem.run(h.ctx, { item: 'raw_iron', maxWaitMs: 5, pollIntervalMs: 0 });
+    const result = await smeltItem.run(h.ctx, {
+      item: 'raw_iron',
+      maxWaitMs: 5,
+      pollIntervalMs: 0,
+    });
 
     expect(result.ok).toBe(false);
     if (result.ok) return;

@@ -13,7 +13,8 @@ export interface BlockInfo {
   readonly hardness?: number;
 }
 
-export type EntityKind = 'player' | 'mob' | 'animal' | 'item' | 'object' | 'other';
+export type EntityKind =
+  'player' | 'mob' | 'animal' | 'item' | 'object' | 'other';
 
 export interface EntityInfo {
   readonly id: number;

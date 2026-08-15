@@ -16,7 +16,9 @@ function evalTask(overrides: Partial<Task> = {}): Task {
     version: '1.0.0',
     tags: [],
     difficulty: 'easy',
-    goal: overrides.goal ?? 'inventory contains at least 4 items tagged minecraft:planks',
+    goal:
+      overrides.goal ??
+      'inventory contains at least 4 items tagged minecraft:planks',
     budget: overrides.budget ?? { maxSteps: 16, maxDurationMs: 60_000 },
     profile: overrides.profile ?? 'fair-play',
     impossible: overrides.impossible ?? false,
@@ -55,7 +57,9 @@ describe('createSandboxExecutor', () => {
     const outcome = await executor(evalTask(), context());
     expect(outcome.kind).toBe('success');
     expect(outcome.steps).toBe(2);
-    expect(executor.records[0]?.run?.world.inventory.count('oak_planks')).toBe(4);
+    expect(executor.records[0]?.run?.world.inventory.count('oak_planks')).toBe(
+      4,
+    );
   });
 
   it('matches a namespaced single-item goal against the sandbox inventory', async () => {
@@ -176,7 +180,9 @@ describe('createSandboxExecutor', () => {
     expect(placement.detail).toMatch(/not scorable in the sandbox tier/);
 
     const altitude = await executor(
-      evalTask({ goal: 'agent y position is at least 5000 (beyond the build limit)' }),
+      evalTask({
+        goal: 'agent y position is at least 5000 (beyond the build limit)',
+      }),
       context(),
     );
     expect(altitude.kind).toBe('error');
@@ -209,7 +215,9 @@ describe('createSandboxExecutor', () => {
     });
 
     const outcome = await executor(
-      evalTask({ goal: 'inventory contains at least 4 items tagged minecraft:logs' }),
+      evalTask({
+        goal: 'inventory contains at least 4 items tagged minecraft:logs',
+      }),
       context(),
     );
     expect(outcome.kind).toBe('success');
@@ -234,12 +242,17 @@ describe('createSandboxExecutor', () => {
     });
 
     await executor(
-      evalTask({ goal: 'inventory contains at least 1 items tagged minecraft:logs' }),
+      evalTask({
+        goal: 'inventory contains at least 1 items tagged minecraft:logs',
+      }),
       context({ repeat: 1, seed: 5 }),
     );
     const record = executor.records[0];
     expect(record?.repeat).toBe(1);
     expect(record?.seed).toBe(5);
-    expect(record?.predicate).toMatchObject({ kind: 'item-tag-count', count: 1 });
+    expect(record?.predicate).toMatchObject({
+      kind: 'item-tag-count',
+      count: 1,
+    });
   });
 });

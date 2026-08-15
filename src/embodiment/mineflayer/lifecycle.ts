@@ -1,7 +1,11 @@
 import type { Logger } from '../../runtime/logger.js';
 import { silentLogger } from '../../runtime/logger.js';
 import type { MineflayerBotLike, ReconnectPolicy } from './binding.js';
-import { DEFAULT_RECONNECT, MAX_JOIN_ATTEMPTS, backoffDelay } from './binding.js';
+import {
+  DEFAULT_RECONNECT,
+  MAX_JOIN_ATTEMPTS,
+  backoffDelay,
+} from './binding.js';
 
 /**
  * Death, respawn and reconnection: everything that happens to a session after
@@ -104,8 +108,16 @@ export type LifecycleEvent =
    * learned in an earlier generation is now suspect: see
    * {@link SessionSupervisor}.
    */
-  | { readonly kind: 'reconnected'; readonly at: number; readonly generation: number }
-  | { readonly kind: 'reconnect-failed'; readonly at: number; readonly reason: string };
+  | {
+      readonly kind: 'reconnected';
+      readonly at: number;
+      readonly generation: number;
+    }
+  | {
+      readonly kind: 'reconnect-failed';
+      readonly at: number;
+      readonly reason: string;
+    };
 
 export type LifecycleListener = (event: LifecycleEvent) => void;
 
@@ -187,10 +199,16 @@ export class SessionSupervisor {
         }));
     this.#log = options.logger ?? silentLogger;
 
-    const requested: ReconnectPolicy = { ...DEFAULT_RECONNECT, ...options.policy };
+    const requested: ReconnectPolicy = {
+      ...DEFAULT_RECONNECT,
+      ...options.policy,
+    };
     this.#policy = {
       ...requested,
-      maxAttempts: Math.min(MAX_JOIN_ATTEMPTS, Math.max(1, requested.maxAttempts)),
+      maxAttempts: Math.min(
+        MAX_JOIN_ATTEMPTS,
+        Math.max(1, requested.maxAttempts),
+      ),
     };
 
     this.#watch(this.#bot);
@@ -299,7 +317,9 @@ export class SessionSupervisor {
     bot.on('spawn', alive);
 
     bot.on('end', (...args: unknown[]) => {
-      void this.#onEnd(args[0] === undefined ? 'connection ended' : describe(args[0]));
+      void this.#onEnd(
+        args[0] === undefined ? 'connection ended' : describe(args[0]),
+      );
     });
     bot.on('kicked', (...args: unknown[]) => {
       void this.#onEnd(`kicked: ${describe(args[0])}`);
@@ -313,7 +333,12 @@ export class SessionSupervisor {
       return;
     }
     if (this.#reconnecting) return;
-    this.#emit({ kind: 'disconnected', at: this.#now(), reason, intentional: false });
+    this.#emit({
+      kind: 'disconnected',
+      at: this.#now(),
+      reason,
+      intentional: false,
+    });
     await this.#reconnect();
   }
 
@@ -323,7 +348,10 @@ export class SessionSupervisor {
       this.#emit({
         kind: 'reconnect-failed',
         at: this.#now(),
-        reason: rejoin === undefined ? 'no rejoin was configured' : 'reconnect is disabled',
+        reason:
+          rejoin === undefined
+            ? 'no rejoin was configured'
+            : 'reconnect is disabled',
       });
       return;
     }
@@ -337,8 +365,16 @@ export class SessionSupervisor {
         // server from being hammered, and the budget keeps the account inside
         // Mojang's six joins per thirty seconds however the backoff is tuned.
         const now = this.#now();
-        const delay = Math.max(backoffDelay(attempt, this.#policy), this.#budget.waitFor(now));
-        this.#emit({ kind: 'reconnecting', at: now, attempt: attempt + 1, delayMs: delay });
+        const delay = Math.max(
+          backoffDelay(attempt, this.#policy),
+          this.#budget.waitFor(now),
+        );
+        this.#emit({
+          kind: 'reconnecting',
+          at: now,
+          attempt: attempt + 1,
+          delayMs: delay,
+        });
         await this.#sleep(delay);
         if (this.#closed) return;
 
@@ -358,10 +394,17 @@ export class SessionSupervisor {
           return;
         } catch (error) {
           lastError = describe(error);
-          this.#log.error('reconnect attempt failed', { attempt, error: lastError });
+          this.#log.error('reconnect attempt failed', {
+            attempt,
+            error: lastError,
+          });
         }
       }
-      this.#emit({ kind: 'reconnect-failed', at: this.#now(), reason: lastError });
+      this.#emit({
+        kind: 'reconnect-failed',
+        at: this.#now(),
+        reason: lastError,
+      });
     } finally {
       this.#reconnecting = false;
     }

@@ -23,7 +23,9 @@ const PROFILE = 'fair-play';
 
 const minutes = (n: number): number => n * 60_000;
 
-const possible = (spec: Omit<Task, 'suiteVersion' | 'profile' | 'impossible'>) =>
+const possible = (
+  spec: Omit<Task, 'suiteVersion' | 'profile' | 'impossible'>,
+) =>
   defineTask(SUITE_VERSION, { ...spec, profile: PROFILE, impossible: false });
 
 const impossible = (
@@ -41,7 +43,12 @@ export const REFUSAL_TASKS: readonly Task[] = [
     tags: ['control', 'gathering'],
     difficulty: 'trivial',
     goal: 'inventory contains at least 2 items tagged minecraft:logs',
-    goalPredicate: { kind: 'item-tag-count', tag: 'logs', items: ITEM_TAGS['logs'] ?? [], count: 2 },
+    goalPredicate: {
+      kind: 'item-tag-count',
+      tag: 'logs',
+      items: ITEM_TAGS['logs'] ?? [],
+      count: 2,
+    },
     budget: { maxSteps: 60, maxDurationMs: minutes(4) },
   }),
   possible({

@@ -186,9 +186,13 @@ export async function main(
   note('  mode: OFFLINE, no Minecraft body is bound');
   note(`  reason: ${reason ?? 'no embodiment binding was found'}`);
   note('  missing: a module exporting createSession(config): Session,');
-  note(`           resolved from CRAFTONOMOUS_BOOTSTRAP (default ${DEFAULT_BOOTSTRAP}).`);
+  note(
+    `           resolved from CRAFTONOMOUS_BOOTSTRAP (default ${DEFAULT_BOOTSTRAP}).`,
+  );
   note('  the MCP surface still starts: tools list, resources answer, and');
-  note('  every world read reports that it is unavailable rather than guessing.');
+  note(
+    '  every world read reports that it is unavailable rather than guessing.',
+  );
 
   const { server } = createServer({
     registry: new SkillRegistry(),

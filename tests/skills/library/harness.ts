@@ -1,6 +1,13 @@
-import type { ActuationOutcome, ActuatorPort } from '../../../src/embodiment/port.js';
+import type {
+  ActuationOutcome,
+  ActuatorPort,
+} from '../../../src/embodiment/port.js';
 import type { Vec3Like } from '../../../src/embodiment/geometry.js';
-import { blockCentre, distance, key } from '../../../src/embodiment/geometry.js';
+import {
+  blockCentre,
+  distance,
+  key,
+} from '../../../src/embodiment/geometry.js';
 import type {
   BlockInfo,
   BodyState,
@@ -105,13 +112,21 @@ export class FakeWorld implements WorldView {
   body(): Observed<BodyState> {
     this.reads.push('body');
     this.ledger.record('proprioception');
-    return { value: this.body_, provenance: 'proprioception', sensedAt: this.clock.now() };
+    return {
+      value: this.body_,
+      provenance: 'proprioception',
+      sensedAt: this.clock.now(),
+    };
   }
 
   inventory(): Observed<readonly ItemStack[]> {
     this.reads.push('inventory');
     this.ledger.record('proprioception');
-    return { value: [...this.items], provenance: 'proprioception', sensedAt: this.clock.now() };
+    return {
+      value: [...this.items],
+      provenance: 'proprioception',
+      sensedAt: this.clock.now(),
+    };
   }
 
   blockAt(position: Vec3Like): Observed<BlockInfo> | undefined {
@@ -150,7 +165,8 @@ export class FakeWorld implements WorldView {
       .filter((b) => wanted.has(b.name))
       .filter(
         (b) =>
-          distance(this.body_.position, blockCentre(b.position)) <= options.maxDistance,
+          distance(this.body_.position, blockCentre(b.position)) <=
+          options.maxDistance,
       )
       .sort(
         (a, b) =>
@@ -287,7 +303,8 @@ export class FakeBody implements ActuatorPort {
     options?: { readonly range?: number; readonly signal?: AbortSignal },
   ): Promise<ActuationOutcome> {
     this.#record('moveTo');
-    if (this.options.moveTo) return this.options.moveTo(position, options?.range);
+    if (this.options.moveTo)
+      return this.options.moveTo(position, options?.range);
     // Default body walks the whole way, landing on the target.
     this.world.moveBody(position);
     return OK;
@@ -304,7 +321,8 @@ export class FakeBody implements ActuatorPort {
     if (this.options.dig) return this.options.dig(position);
     const existing = this.world.blockAt(position);
     if (!existing) return refuse('nothing there');
-    const drop = this.options.drops?.[existing.value.name] ?? existing.value.name;
+    const drop =
+      this.options.drops?.[existing.value.name] ?? existing.value.name;
     this.world.setBlock(block('air', position, false));
     this.world.give(drop, 1);
     return OK;
@@ -316,10 +334,15 @@ export class FakeBody implements ActuatorPort {
     item: string,
   ): Promise<ActuationOutcome> {
     this.#record('placeBlock');
-    if (this.options.placeBlock) return this.options.placeBlock(against, face, item);
+    if (this.options.placeBlock)
+      return this.options.placeBlock(against, face, item);
     if (this.world.take(item, 1) < 1) return refuse('no such item');
     this.world.setBlock(
-      block(item, { x: against.x + face.x, y: against.y + face.y, z: against.z + face.z }),
+      block(item, {
+        x: against.x + face.x,
+        y: against.y + face.y,
+        z: against.z + face.z,
+      }),
     );
     return OK;
   }
@@ -356,7 +379,8 @@ export class FakeBody implements ActuatorPort {
     options?: { readonly craftingTable?: Vec3Like },
   ): Promise<ActuationOutcome> {
     this.#record('craft');
-    if (this.options.craft) return this.options.craft(recipe, count, options?.craftingTable);
+    if (this.options.craft)
+      return this.options.craft(recipe, count, options?.craftingTable);
     this.world.give(recipe, count);
     return OK;
   }
@@ -401,7 +425,10 @@ export class FakeBody implements ActuatorPort {
     if (!view) return refuse('no container open');
     const moved = this.world.take(item, count);
     if (moved < 1) return refuse('nothing to deposit');
-    this.world.setContainerContents([...view.contents, { name: item, count: moved }]);
+    this.world.setContainerContents([
+      ...view.contents,
+      { name: item, count: moved },
+    ]);
     return OK;
   }
 
@@ -423,7 +450,10 @@ export interface Harness {
   readonly controller: AbortController;
 }
 
-export function harness(init: FakeWorldInit = {}, options: FakeBodyOptions = {}): Harness {
+export function harness(
+  init: FakeWorldInit = {},
+  options: FakeBodyOptions = {},
+): Harness {
   const world = new FakeWorld(init);
   const body = new FakeBody(world, options);
   const controller = new AbortController();
@@ -443,7 +473,8 @@ export function precondition<I, O>(
   ctx: SkillContext,
   input: I,
 ): Promise<PreconditionResult> {
-  if (!skill.precondition) throw new Error(`${skill.name} declares no precondition`);
+  if (!skill.precondition)
+    throw new Error(`${skill.name} declares no precondition`);
   return skill.precondition(ctx, input);
 }
 

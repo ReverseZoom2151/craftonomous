@@ -28,28 +28,44 @@ describe('classifyEntity', () => {
   });
 
   it('treats neutrals as mobs that are not hostile', () => {
-    expect(classifyEntity({ name: 'enderman' })).toEqual({ kind: 'mob', hostile: false });
-    expect(classifyEntity({ name: 'wolf' })).toEqual({ kind: 'mob', hostile: false });
+    expect(classifyEntity({ name: 'enderman' })).toEqual({
+      kind: 'mob',
+      hostile: false,
+    });
+    expect(classifyEntity({ name: 'wolf' })).toEqual({
+      kind: 'mob',
+      hostile: false,
+    });
   });
 
   it('classifies passive creatures as animals', () => {
-    expect(classifyEntity({ name: 'cow' })).toEqual({ kind: 'animal', hostile: false });
-    expect(classifyEntity({ name: 'villager' })).toEqual({ kind: 'animal', hostile: false });
+    expect(classifyEntity({ name: 'cow' })).toEqual({
+      kind: 'animal',
+      hostile: false,
+    });
+    expect(classifyEntity({ name: 'villager' })).toEqual({
+      kind: 'animal',
+      hostile: false,
+    });
   });
 
   it('classifies dropped items and objects', () => {
     expect(classifyEntity({ name: 'item', type: 'object' }).kind).toBe('item');
-    expect(classifyEntity({ name: 'arrow', type: 'projectile' }).kind).toBe('object');
+    expect(classifyEntity({ name: 'arrow', type: 'projectile' }).kind).toBe(
+      'object',
+    );
   });
 
   it('falls back to the substrate type when the name is unknown', () => {
-    expect(classifyEntity({ name: 'some_future_mob', type: 'hostile' })).toEqual({
+    expect(
+      classifyEntity({ name: 'some_future_mob', type: 'hostile' }),
+    ).toEqual({
       kind: 'mob',
       hostile: true,
     });
-    expect(classifyEntity({ name: 'some_future_fish', type: 'water_creature' }).kind).toBe(
-      'animal',
-    );
+    expect(
+      classifyEntity({ name: 'some_future_fish', type: 'water_creature' }).kind,
+    ).toBe('animal');
     expect(classifyEntity({}).kind).toBe('other');
   });
 
@@ -62,17 +78,29 @@ describe('classifyEntity', () => {
 
 describe('blockIsSolid', () => {
   it('trusts the substrate bounding box when present', () => {
-    expect(blockIsSolid({ name: 'stone', position: { x: 0, y: 0, z: 0 }, boundingBox: 'block' })).toBe(
-      true,
-    );
-    expect(blockIsSolid({ name: 'water', position: { x: 0, y: 0, z: 0 }, boundingBox: 'empty' })).toBe(
-      false,
-    );
+    expect(
+      blockIsSolid({
+        name: 'stone',
+        position: { x: 0, y: 0, z: 0 },
+        boundingBox: 'block',
+      }),
+    ).toBe(true);
+    expect(
+      blockIsSolid({
+        name: 'water',
+        position: { x: 0, y: 0, z: 0 },
+        boundingBox: 'empty',
+      }),
+    ).toBe(false);
   });
 
   it('falls back to the name and treats missing blocks as clear', () => {
-    expect(blockIsSolid({ name: 'stone', position: { x: 0, y: 0, z: 0 } })).toBe(true);
-    expect(blockIsSolid({ name: 'cave_air', position: { x: 0, y: 0, z: 0 } })).toBe(false);
+    expect(
+      blockIsSolid({ name: 'stone', position: { x: 0, y: 0, z: 0 } }),
+    ).toBe(true);
+    expect(
+      blockIsSolid({ name: 'cave_air', position: { x: 0, y: 0, z: 0 } }),
+    ).toBe(false);
     expect(blockIsSolid(null)).toBe(false);
     expect(blockIsSolid(undefined)).toBe(false);
   });
@@ -83,7 +111,9 @@ describe('reconnect backoff', () => {
     // Mojang allows 6 session joins per 30 seconds per account.
     const greedy = { ...DEFAULT_RECONNECT, initialDelayMs: 1, factor: 1 };
     for (let attempt = 0; attempt < 10; attempt += 1) {
-      expect(backoffDelay(attempt, greedy)).toBeGreaterThanOrEqual(MIN_RETRY_DELAY_MS);
+      expect(backoffDelay(attempt, greedy)).toBeGreaterThanOrEqual(
+        MIN_RETRY_DELAY_MS,
+      );
     }
   });
 
@@ -99,7 +129,9 @@ describe('reconnect backoff', () => {
     expect(backoffDelay(0, DEFAULT_RECONNECT)).toBe(5_000);
     expect(backoffDelay(1, DEFAULT_RECONNECT)).toBe(10_000);
     expect(backoffDelay(2, DEFAULT_RECONNECT)).toBe(20_000);
-    expect(backoffDelay(9, DEFAULT_RECONNECT)).toBe(DEFAULT_RECONNECT.maxDelayMs);
+    expect(backoffDelay(9, DEFAULT_RECONNECT)).toBe(
+      DEFAULT_RECONNECT.maxDelayMs,
+    );
   });
 
   it('defaults to at most five joins, one under the limit', () => {
@@ -110,7 +142,9 @@ describe('reconnect backoff', () => {
 
 describe('authentication errors', () => {
   it('extracts an XSTS code from a prismarine-auth style message', () => {
-    const error = new Error('XSTS error: {"Identity":"0","XErr":2148916233,"Message":""}');
+    const error = new Error(
+      'XSTS error: {"Identity":"0","XErr":2148916233,"Message":""}',
+    );
     expect(extractXstsCode(error)).toBe(2148916233);
   });
 
@@ -138,7 +172,11 @@ describe('authentication errors', () => {
   });
 
   it('leaves non-authentication errors alone so they can be retried', () => {
-    expect(toAuthError(new Error('ECONNREFUSED 127.0.0.1:25565'))).toBeUndefined();
-    expect(toAuthError(new Error('timed out after 60000ms waiting for spawn'))).toBeUndefined();
+    expect(
+      toAuthError(new Error('ECONNREFUSED 127.0.0.1:25565')),
+    ).toBeUndefined();
+    expect(
+      toAuthError(new Error('timed out after 60000ms waiting for spawn')),
+    ).toBeUndefined();
   });
 });

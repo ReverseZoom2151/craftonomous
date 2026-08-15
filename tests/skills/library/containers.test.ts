@@ -10,7 +10,11 @@ const CHEST = at(2, 64, 0);
 
 function chestHolding(contents: readonly { name: string; count: number }[]) {
   return {
-    openContainer: (position: { x: number; y: number; z: number }): ContainerView => ({
+    openContainer: (position: {
+      x: number;
+      y: number;
+      z: number;
+    }): ContainerView => ({
       kind: 'chest',
       position,
       contents: [...contents],
@@ -81,7 +85,10 @@ describe('depositItems', () => {
 
   it('fails world-changed when the chest has gone by the time we arrive', async () => {
     const h = harness(
-      { inventory: [{ name: 'coal', count: 3 }], blocks: [block('chest', CHEST)] },
+      {
+        inventory: [{ name: 'coal', count: 3 }],
+        blocks: [block('chest', CHEST)],
+      },
       { openContainer: () => undefined },
     );
     const result = await depositItems.run(h.ctx, {
@@ -96,7 +103,10 @@ describe('depositItems', () => {
 
   it('fails and still closes the chest when nothing fits', async () => {
     const h = harness(
-      { inventory: [{ name: 'coal', count: 3 }], blocks: [block('chest', CHEST)] },
+      {
+        inventory: [{ name: 'coal', count: 3 }],
+        blocks: [block('chest', CHEST)],
+      },
       { deposit: () => refuse('the chest is full') },
     );
     const result = await depositItems.run(h.ctx, {
@@ -218,7 +228,10 @@ describe('withdrawItems', () => {
 describe('container skills leave nothing open', () => {
   it('closes the container even when a transfer throws', async () => {
     const h = harness(
-      { inventory: [{ name: 'coal', count: 1 }], blocks: [block('chest', CHEST)] },
+      {
+        inventory: [{ name: 'coal', count: 1 }],
+        blocks: [block('chest', CHEST)],
+      },
       {
         deposit: () => {
           throw new Error('connection lost');

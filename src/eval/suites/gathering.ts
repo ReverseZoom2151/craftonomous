@@ -32,7 +32,12 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['gathering', 'wood', 'smoke'],
     difficulty: 'trivial',
     goal: 'inventory contains at least 1 item tagged minecraft:logs',
-    goalPredicate: { kind: 'item-tag-count', tag: 'logs', items: ITEM_TAGS['logs'] ?? [], count: 1 },
+    goalPredicate: {
+      kind: 'item-tag-count',
+      tag: 'logs',
+      items: ITEM_TAGS['logs'] ?? [],
+      count: 1,
+    },
     budget: { maxSteps: 40, maxDurationMs: minutes(3) },
   }),
   task({
@@ -45,7 +50,12 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['gathering', 'wood'],
     difficulty: 'easy',
     goal: 'inventory contains at least 8 items tagged minecraft:logs',
-    goalPredicate: { kind: 'item-tag-count', tag: 'logs', items: ITEM_TAGS['logs'] ?? [], count: 8 },
+    goalPredicate: {
+      kind: 'item-tag-count',
+      tag: 'logs',
+      items: ITEM_TAGS['logs'] ?? [],
+      count: 8,
+    },
     budget: { maxSteps: 120, maxDurationMs: minutes(6) },
   }),
   task({
@@ -58,7 +68,12 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['crafting', 'wood'],
     difficulty: 'easy',
     goal: 'inventory contains at least 4 items tagged minecraft:planks',
-    goalPredicate: { kind: 'item-tag-count', tag: 'planks', items: ITEM_TAGS['planks'] ?? [], count: 4 },
+    goalPredicate: {
+      kind: 'item-tag-count',
+      tag: 'planks',
+      items: ITEM_TAGS['planks'] ?? [],
+      count: 4,
+    },
     budget: { maxSteps: 60, maxDurationMs: minutes(4) },
   }),
   task({

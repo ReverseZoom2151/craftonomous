@@ -165,7 +165,7 @@ describe('ranking', () => {
 });
 
 describe('recency', () => {
-  it('does not let last month\'s successes prop up today\'s failures', () => {
+  it("does not let last month's successes prop up today's failures", () => {
     // The scenario the window exists for: a server update broke the skill this
     // morning, and its lifetime record is glowing.
     const clock = new ManualClock(0);

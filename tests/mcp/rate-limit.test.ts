@@ -93,9 +93,9 @@ describe('the documented defaults', () => {
   });
 
   it('refuses a nonsensical budget rather than serving an unbounded one', () => {
-    expect(() => new RateLimiter({ global: { limit: 0, windowMs: 1000 } })).toThrow(
-      RangeError,
-    );
+    expect(
+      () => new RateLimiter({ global: { limit: 0, windowMs: 1000 } }),
+    ).toThrow(RangeError);
     expect(
       () => new RateLimiter({ perTool: { limit: 5, windowMs: 0 } }),
     ).toThrow(RangeError);

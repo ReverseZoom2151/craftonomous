@@ -100,8 +100,7 @@ export class AgentLoop {
   constructor(options: AgentLoopOptions) {
     this.#o = options;
     this.#log = options.log ?? silentLogger;
-    this.memory =
-      options.memory ?? new AgentMemory({ clock: options.clock });
+    this.memory = options.memory ?? new AgentMemory({ clock: options.clock });
     this.goals = options.goals ?? new GoalStack({ clock: options.clock });
   }
 
@@ -187,7 +186,15 @@ export class AgentLoop {
         // record: note it as a step so the trace explains the stop.
         decision = { kind: 'done', reason: 'policy threw' };
         outcome = { kind: 'policy-error', message: errorMessage(error) };
-        this.#record(step, stepStarted, digest, goal, decision, outcome, clock.now() - decideStart);
+        this.#record(
+          step,
+          stepStarted,
+          digest,
+          goal,
+          decision,
+          outcome,
+          clock.now() - decideStart,
+        );
         stoppedBecause = 'error';
         reason = outcome.message;
         break;
@@ -195,19 +202,31 @@ export class AgentLoop {
       const decideMs = clock.now() - decideStart;
 
       this.memory.append('action', describeDecision(decision));
-      this.#log.debug('decided', { step, decision: describeDecision(decision) });
+      this.#log.debug('decided', {
+        step,
+        decision: describeDecision(decision),
+      });
 
       // The signal may have fired while the policy was thinking, which for an
       // LLM policy is most of the elapsed time. Do not act on a stale decision.
       if (signal !== undefined && isAborted(signal)) {
         outcome = { kind: 'aborted', reason: abortReason(signal) };
-        this.#record(step, stepStarted, digest, goal, decision, outcome, decideMs);
+        this.#record(
+          step,
+          stepStarted,
+          digest,
+          goal,
+          decision,
+          outcome,
+          decideMs,
+        );
         stoppedBecause = 'aborted';
         reason = outcome.reason;
         break;
       }
 
-      let stop: { readonly why: StopReason; readonly reason: string } | undefined;
+      let stop:
+        { readonly why: StopReason; readonly reason: string } | undefined;
 
       switch (decision.kind) {
         case 'done': {
@@ -238,7 +257,15 @@ export class AgentLoop {
       }
 
       this.memory.append('outcome', describeOutcome(outcome));
-      this.#record(step, stepStarted, digest, goal, decision, outcome, decideMs);
+      this.#record(
+        step,
+        stepStarted,
+        digest,
+        goal,
+        decision,
+        outcome,
+        decideMs,
+      );
       lastOutcome = outcome;
 
       if (stop) {

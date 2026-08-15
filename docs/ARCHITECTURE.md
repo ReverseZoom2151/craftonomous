@@ -193,16 +193,16 @@ the feedback loop the Voyager lineage never closed.
 `RETRYABLE_FAILURES` and `isRetryable` in the same file decide the retryable
 column, and `fail()` stamps it onto every failure result.
 
-| Kind | Meaning | Retryable |
-| --- | --- | --- |
-| `timeout` | Ran past its time budget. | yes |
-| `unreachable` | The target could not be reached. | yes |
-| `world-changed` | The target block or entity is gone. | yes |
-| `precondition` | A stated precondition did not hold when checked. | no |
-| `interrupted` | Pre-empted by a reflex or an explicit cancellation. | no |
-| `invalid-input` | Input failed schema validation. | no |
-| `not-permitted` | The perception profile forbade a read the skill required. | no |
-| `unknown` | Everything else. Expected to shrink over time. | no |
+| Kind            | Meaning                                                   | Retryable |
+| --------------- | --------------------------------------------------------- | --------- |
+| `timeout`       | Ran past its time budget.                                 | yes       |
+| `unreachable`   | The target could not be reached.                          | yes       |
+| `world-changed` | The target block or entity is gone.                       | yes       |
+| `precondition`  | A stated precondition did not hold when checked.          | no        |
+| `interrupted`   | Pre-empted by a reflex or an explicit cancellation.       | no        |
+| `invalid-input` | Input failed schema validation.                           | no        |
+| `not-permitted` | The perception profile forbade a read the skill required. | no        |
+| `unknown`       | Everything else. Expected to shrink over time.            | no        |
 
 Collapsing all of these into a boolean throws away the only information that
 would tell an agent what to do next. Retrying is right for a timeout and wrong

@@ -110,7 +110,11 @@ export const ITEM_TAGS: Readonly<Record<string, readonly string[]>> = {
  */
 export type GoalPredicate =
   /** Holding at least `count` of one named item. */
-  | { readonly kind: 'item-count'; readonly item: string; readonly count: number }
+  | {
+      readonly kind: 'item-count';
+      readonly item: string;
+      readonly count: number;
+    }
   /** Holding at least `count` items drawn from a tag. */
   | {
       readonly kind: 'item-tag-count';
@@ -172,7 +176,8 @@ const ENCLOSED = /^agent position is fully enclosed by solid blocks\b/i;
 function count(raw: string | undefined, what: string): number | string {
   if (raw === undefined) return `missing ${what}`;
   const n = Number.parseInt(raw, 10);
-  if (!Number.isFinite(n) || n <= 0) return `${what} must be positive, got ${raw}`;
+  if (!Number.isFinite(n) || n <= 0)
+    return `${what} must be positive, got ${raw}`;
   return n;
 }
 
@@ -200,7 +205,10 @@ export function parseGoal(goal: string): GoalParse {
         reason: `unknown item tag "${tag}"; add it to ITEM_TAGS to check this goal`,
       };
     }
-    return { ok: true, predicate: { kind: 'item-tag-count', tag, items, count: n } };
+    return {
+      ok: true,
+      predicate: { kind: 'item-tag-count', tag, items, count: n },
+    };
   }
 
   const item = ITEM.exec(text);
@@ -234,7 +242,8 @@ export function parseGoal(goal: string): GoalParse {
   const altitude = ALTITUDE.exec(text);
   if (altitude) {
     const y = Number.parseInt(altitude[1] ?? '', 10);
-    if (!Number.isFinite(y)) return { ok: false, reason: 'unreadable altitude' };
+    if (!Number.isFinite(y))
+      return { ok: false, reason: 'unreadable altitude' };
     return { ok: true, predicate: { kind: 'agent-y-at-least', y } };
   }
 
@@ -294,7 +303,10 @@ export function checkPredicate(
 ): GoalCheck {
   switch (predicate.kind) {
     case 'item-count': {
-      const held = totalHeld(world.inventory().value, new Set([predicate.item]));
+      const held = totalHeld(
+        world.inventory().value,
+        new Set([predicate.item]),
+      );
       return {
         checkable: true,
         met: held >= predicate.count,

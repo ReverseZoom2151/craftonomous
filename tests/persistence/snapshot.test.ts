@@ -109,7 +109,9 @@ describe('decodeSnapshot structural checks', () => {
   it('ignores unknown fields, so a richer writer degrades gracefully', () => {
     const richer = current() as Record<string, unknown>;
     richer['contexts'] = { nether: [] };
-    const memory = richer['memory'] as { observations: Record<string, unknown>[] };
+    const memory = richer['memory'] as {
+      observations: Record<string, unknown>[];
+    };
     memory.observations[0]!['confidence'] = 0.4;
 
     const snapshot = decodeSnapshot(richer, 'richer.json');
@@ -126,7 +128,9 @@ describe('decodeSnapshot structural checks', () => {
 
   it('rejects a wrongly typed sensedAt, naming where it is', () => {
     const broken = current() as Record<string, unknown>;
-    const memory = broken['memory'] as { observations: Record<string, unknown>[] };
+    const memory = broken['memory'] as {
+      observations: Record<string, unknown>[];
+    };
     memory.observations[0]!['sensedAt'] = 'yesterday';
 
     expect(() => decodeSnapshot(broken, 'broken.json')).toThrow(
@@ -136,7 +140,9 @@ describe('decodeSnapshot structural checks', () => {
 
   it('rejects an unknown provenance rather than downgrading it silently', () => {
     const broken = current() as Record<string, unknown>;
-    const memory = broken['memory'] as { observations: Record<string, unknown>[] };
+    const memory = broken['memory'] as {
+      observations: Record<string, unknown>[];
+    };
     memory.observations[0]!['provenance'] = 'clairvoyance';
 
     expect(() => decodeSnapshot(broken, 'broken.json')).toThrow(
@@ -160,7 +166,9 @@ describe('decodeSnapshot structural checks', () => {
     expect(() => decodeSnapshot([1, 2, 3], 'array.json')).toThrow(
       SnapshotFormatError,
     );
-    expect(() => decodeSnapshot(null, 'null.json')).toThrow(SnapshotFormatError);
+    expect(() => decodeSnapshot(null, 'null.json')).toThrow(
+      SnapshotFormatError,
+    );
   });
 });
 

@@ -78,7 +78,10 @@ export class ReflexSupervisor {
     this.#act = options.act;
     this.#clock = options.clock;
     this.#log = options.log ?? silentLogger;
-    this.#historyLimit = Math.max(1, options.historyLimit ?? DEFAULT_FIRE_HISTORY);
+    this.#historyLimit = Math.max(
+      1,
+      options.historyLimit ?? DEFAULT_FIRE_HISTORY,
+    );
   }
 
   /** Whether the loop is running. */
@@ -121,7 +124,9 @@ export class ReflexSupervisor {
   start(intervalMs: number = DEFAULT_REFLEX_INTERVAL_MS): void {
     if (this.#timer !== undefined) return;
     if (!(intervalMs > 0)) {
-      throw new RangeError(`reflex interval must be positive, got ${intervalMs}`);
+      throw new RangeError(
+        `reflex interval must be positive, got ${intervalMs}`,
+      );
     }
     const timer = setInterval(() => {
       this.tick();
@@ -164,7 +169,11 @@ export class ReflexSupervisor {
 
     this.#firing = reflex;
     const preempted = this.#preempt(reflex);
-    const record: FireRecord = { reflex: reflex.name, at: this.#clock.now(), preempted };
+    const record: FireRecord = {
+      reflex: reflex.name,
+      at: this.#clock.now(),
+      preempted,
+    };
     this.#remember(record);
     this.#log.warn('reflex fired', { reflex: reflex.name, preempted });
 

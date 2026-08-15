@@ -92,9 +92,10 @@ export class OfflineWorldView implements WorldView {
 
   /** A true report: nothing was read, because there was nothing to read. */
   report(): PerceptionReport {
-    const counts = Object.fromEntries(
-      PROVENANCE.map((p) => [p, 0]),
-    ) as Record<Provenance, number>;
+    const counts = Object.fromEntries(PROVENANCE.map((p) => [p, 0])) as Record<
+      Provenance,
+      number
+    >;
     return {
       counts,
       total: 0,

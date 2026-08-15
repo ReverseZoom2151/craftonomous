@@ -122,9 +122,7 @@ async function runAttempt(
   let timer: ReturnType<typeof setTimeout> | undefined;
   const expiry = new Promise<TaskOutcome>((resolve) => {
     timer = setTimeout(() => {
-      controller.abort(
-        new Error(`task ${task.id} exceeded ${timeBudgetMs}ms`),
-      );
+      controller.abort(new Error(`task ${task.id} exceeded ${timeBudgetMs}ms`));
       resolve(
         timeoutOutcome(
           clock.now() - startedAt,

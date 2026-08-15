@@ -28,9 +28,7 @@ describe('provenance rendering', () => {
 
     const digest = buildDigest(w, clock.now());
 
-    expect(digest.text).toContain(
-      'iron_ore at (12,40,-3) [remembered 4m ago]',
-    );
+    expect(digest.text).toContain('iron_ore at (12,40,-3) [remembered 4m ago]');
   });
 
   it('never presents a remembered block as a present fact', () => {
@@ -54,9 +52,15 @@ describe('provenance rendering', () => {
 
   it('distinguishes a sighted block from a remembered one', () => {
     const { world: w, clock } = world();
-    w.blocks = [obs(block('oak_log', { x: 1, y: 64, z: 1 }), 'sight', clock.now())];
+    w.blocks = [
+      obs(block('oak_log', { x: 1, y: 64, z: 1 }), 'sight', clock.now()),
+    ];
     w.remembered = [
-      obs(block('oak_log', { x: 9, y: 64, z: 9 }), 'memory', clock.now() - MINUTE),
+      obs(
+        block('oak_log', { x: 9, y: 64, z: 9 }),
+        'memory',
+        clock.now() - MINUTE,
+      ),
     ];
 
     const text = buildDigest(w, clock.now(), { blockNames: ['oak_log'] }).text;
@@ -169,7 +173,11 @@ describe('bounds', () => {
 describe('content', () => {
   it('reports body, inventory, profile and the perception tally', () => {
     const { world: w, clock } = world();
-    w.bodyState = defaultBody({ health: 11, food: 7, position: { x: 3, y: 70, z: -8 } });
+    w.bodyState = defaultBody({
+      health: 11,
+      food: 7,
+      position: { x: 3, y: 70, z: -8 },
+    });
     w.items = [{ name: 'bread', count: 4 }];
 
     const text = buildDigest(w, clock.now()).text;

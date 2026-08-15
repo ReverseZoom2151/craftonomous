@@ -166,8 +166,7 @@ export class ScriptedPolicy implements Policy {
     options: { readonly onExhausted?: Decision } = {},
   ) {
     this.#script = script;
-    this.#exhausted =
-      options.onExhausted ?? doneDecision('script exhausted');
+    this.#exhausted = options.onExhausted ?? doneDecision('script exhausted');
   }
 
   get cursor(): number {
@@ -241,7 +240,8 @@ export interface RulePolicyOptions {
 }
 
 /** `gather 5 oak_log`, `collect iron_ore`, `mine 3 coal_ore`. */
-const GATHER = /\b(?:gather|collect|mine|get|obtain)\s+(?:(\d+)\s+)?([a-z0-9_]+)/i;
+const GATHER =
+  /\b(?:gather|collect|mine|get|obtain)\s+(?:(\d+)\s+)?([a-z0-9_]+)/i;
 
 export interface GatherGoal {
   readonly item: string;
@@ -254,7 +254,10 @@ export function parseGatherGoal(description: string): GatherGoal | undefined {
   if (item === undefined) return undefined;
   const raw = m?.[1];
   const count = raw === undefined ? 1 : Number.parseInt(raw, 10);
-  return { item: item.toLowerCase(), count: Number.isFinite(count) && count > 0 ? count : 1 };
+  return {
+    item: item.toLowerCase(),
+    count: Number.isFinite(count) && count > 0 ? count : 1,
+  };
 }
 
 /**

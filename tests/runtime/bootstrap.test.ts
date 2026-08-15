@@ -62,7 +62,9 @@ describe('an offline session is a fully assembled body', () => {
     const session = offline();
     // The shape of the guarantee: everything a session exposes reads through
     // the gate, so there is no `sensors` handle to reach around it with.
-    expect((session as unknown as Record<string, unknown>)['sensors']).toBeUndefined();
+    expect(
+      (session as unknown as Record<string, unknown>)['sensors'],
+    ).toBeUndefined();
     expect(session.world.profile.name).toBe(FAIR_PLAY.name);
     expect(session.gate.profile).toBe(session.world.profile);
   });

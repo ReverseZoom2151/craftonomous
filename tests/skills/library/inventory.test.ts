@@ -31,7 +31,9 @@ describe('equipItem', () => {
 
   it('fails its precondition for an item that is not carried', async () => {
     const h = harness();
-    const check = await precondition(equipItem, h.ctx, { item: 'iron_pickaxe' });
+    const check = await precondition(equipItem, h.ctx, {
+      item: 'iron_pickaxe',
+    });
 
     expect(check.holds).toBe(false);
     if (check.holds) return;
@@ -43,7 +45,10 @@ describe('equipItem', () => {
       { inventory: [{ name: 'stone', count: 1 }] },
       { equip: () => refuse('stone is not armour') },
     );
-    const result = await equipItem.run(h.ctx, { item: 'stone', destination: 'head' });
+    const result = await equipItem.run(h.ctx, {
+      item: 'stone',
+      destination: 'head',
+    });
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -129,7 +134,10 @@ describe('dropItem', () => {
   });
 
   it('does not believe a drop that changed nothing', async () => {
-    const h = harness({ inventory: [{ name: 'cobblestone', count: 2 }] }, { dropItem: () => OK });
+    const h = harness(
+      { inventory: [{ name: 'cobblestone', count: 2 }] },
+      { dropItem: () => OK },
+    );
     const result = await dropItem.run(h.ctx, { item: 'cobblestone' });
 
     expect(result.ok).toBe(false);

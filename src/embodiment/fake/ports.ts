@@ -267,7 +267,8 @@ export class FakeActuatorPort implements ActuatorPort {
     options?: { readonly craftingTable?: Vec3Like },
   ): Promise<ActuationOutcome> {
     const args = { recipe, count, craftingTable: options?.craftingTable };
-    if (count <= 0) return this.#record('craft', args, fail('count must be positive'));
+    if (count <= 0)
+      return this.#record('craft', args, fail('count must be positive'));
 
     const known = this.world.getRecipe(recipe);
     if (known === undefined) {
@@ -363,7 +364,9 @@ export class FakeEmbodiment implements EmbodimentPort {
 }
 
 /** Convenience constructor matching the shape callers expect from `connect`. */
-export function createFakeEmbodiment(world: FakeWorld = new FakeWorld()): FakeEmbodiment {
+export function createFakeEmbodiment(
+  world: FakeWorld = new FakeWorld(),
+): FakeEmbodiment {
   return new FakeEmbodiment(world);
 }
 

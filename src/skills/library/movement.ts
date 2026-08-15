@@ -45,7 +45,7 @@ export const goToPosition: Skill<GoToPositionInput, GoToPositionOutput> = {
   summary: 'Walk to a coordinate, stopping once within a range tolerance.',
   description: [
     'Paths to `position` and reports where the body actually ended up, read',
-    'back from proprioception rather than taken on the pathfinder\'s word.',
+    "back from proprioception rather than taken on the pathfinder's word.",
     'Fails `unreachable` when no path exists or when the mover claims success',
     'without arriving.',
     'Do not use this to reach a block you intend to dig or place against;',
@@ -67,7 +67,11 @@ export const goToPosition: Skill<GoToPositionInput, GoToPositionOutput> = {
       const startDistance = distance(bodyPosition(ctx), input.position);
       if (startDistance <= range) {
         return succeed(
-          { position: bodyPosition(ctx), distance: startDistance, alreadyThere: true },
+          {
+            position: bodyPosition(ctx),
+            distance: startDistance,
+            alreadyThere: true,
+          },
           elapsed(),
         );
       }
@@ -89,7 +93,11 @@ export const goToPosition: Skill<GoToPositionInput, GoToPositionOutput> = {
 
       const here = bodyPosition(ctx);
       return succeed(
-        { position: here, distance: distance(here, input.position), alreadyThere: false },
+        {
+          position: here,
+          distance: distance(here, input.position),
+          alreadyThere: false,
+        },
         elapsed(),
       );
     }),
@@ -120,7 +128,8 @@ export type GoToBlockOutput = z.infer<typeof goToBlockOutput>;
 
 export const goToBlock: Skill<GoToBlockInput, GoToBlockOutput> = {
   name: 'goToBlock',
-  summary: 'Walk to the nearest known block of a named type and stand beside it.',
+  summary:
+    'Walk to the nearest known block of a named type and stand beside it.',
   description: [
     'Searches what the agent can currently sense or recall for the nearest',
     'block of this name, then paths to within reach of it and confirms the',
@@ -138,7 +147,11 @@ export const goToBlock: Skill<GoToBlockInput, GoToBlockOutput> = {
     guarded(ctx, async (elapsed) => {
       const maxDistance = input.maxDistance ?? 32;
       const range = input.range ?? 2;
-      const interrupted = interruptCheck<GoToBlockOutput>(ctx, elapsed, 'before moving');
+      const interrupted = interruptCheck<GoToBlockOutput>(
+        ctx,
+        elapsed,
+        'before moving',
+      );
       if (interrupted) return interrupted;
 
       const target = nearestBlock(ctx, [input.name], maxDistance);
@@ -153,7 +166,11 @@ export const goToBlock: Skill<GoToBlockInput, GoToBlockOutput> = {
       const centre = blockCentre(target.value.position);
       const moved = await moveWithin(ctx, centre, range);
       if (!moved.ok) {
-        const stillGoing = interruptCheck<GoToBlockOutput>(ctx, elapsed, 'while moving');
+        const stillGoing = interruptCheck<GoToBlockOutput>(
+          ctx,
+          elapsed,
+          'while moving',
+        );
         if (stillGoing) return stillGoing;
         return fail(
           'unreachable',
@@ -167,7 +184,9 @@ export const goToBlock: Skill<GoToBlockInput, GoToBlockOutput> = {
         return fail(
           'world-changed',
           `the ${input.name} at ${show(target.value.position)} is gone; ${
-            nowThere ? `there is now ${nowThere.value.name}` : 'the space is no longer sensed'
+            nowThere
+              ? `there is now ${nowThere.value.name}`
+              : 'the space is no longer sensed'
           }`,
           elapsed(),
         );
@@ -211,7 +230,7 @@ export const goToEntity: Skill<GoToEntityInput, GoToEntityOutput> = {
   description: [
     'Finds the nearest entity currently sensed whose type name or username',
     'matches, then paths to within `range` of where it was seen.',
-    'Entities move, so the final distance is measured against the entity\'s',
+    "Entities move, so the final distance is measured against the entity's",
     'position after the approach, and an entity that left sensing range',
     'during the walk fails `world-changed`.',
     'Do not use this to fight; `attackEntity` approaches and swings. Do not',
@@ -235,7 +254,11 @@ export const goToEntity: Skill<GoToEntityInput, GoToEntityOutput> = {
     guarded(ctx, async (elapsed) => {
       const maxDistance = input.maxDistance ?? 32;
       const range = input.range ?? 2;
-      const interrupted = interruptCheck<GoToEntityOutput>(ctx, elapsed, 'before moving');
+      const interrupted = interruptCheck<GoToEntityOutput>(
+        ctx,
+        elapsed,
+        'before moving',
+      );
       if (interrupted) return interrupted;
 
       const target = nearestEntity(ctx, input.name, maxDistance);
@@ -250,7 +273,11 @@ export const goToEntity: Skill<GoToEntityInput, GoToEntityOutput> = {
 
       const moved = await moveWithin(ctx, target.value.position, range);
       if (!moved.ok) {
-        const stillGoing = interruptCheck<GoToEntityOutput>(ctx, elapsed, 'while moving');
+        const stillGoing = interruptCheck<GoToEntityOutput>(
+          ctx,
+          elapsed,
+          'while moving',
+        );
         if (stillGoing) return stillGoing;
         return fail(
           'unreachable',
@@ -315,9 +342,15 @@ export const lookAt: Skill<LookAtInput, LookAtOutput> = {
   output: lookAtOutput,
   run: (ctx, input) =>
     guarded(ctx, async (elapsed) => {
-      const interrupted = interruptCheck<LookAtOutput>(ctx, elapsed, 'before looking');
+      const interrupted = interruptCheck<LookAtOutput>(
+        ctx,
+        elapsed,
+        'before looking',
+      );
       if (interrupted) return interrupted;
-      const target = input.centreOnBlock ? blockCentre(input.position) : input.position;
+      const target = input.centreOnBlock
+        ? blockCentre(input.position)
+        : input.position;
       const outcome = await ctx.act.lookAt(target);
       if (!outcome.ok) {
         return fail(
@@ -347,10 +380,9 @@ const fleeInput = z
     /** How much space to put between body and threat. Defaults to 16. */
     minDistance: z.number().min(1).max(128).optional(),
   })
-  .refine(
-    (v) => (v.position === undefined) !== (v.entityName === undefined),
-    { message: 'give exactly one of `position` or `entityName`' },
-  );
+  .refine((v) => (v.position === undefined) !== (v.entityName === undefined), {
+    message: 'give exactly one of `position` or `entityName`',
+  });
 const fleeOutput = z.object({
   from: vec3Schema,
   position: vec3Schema,
@@ -364,7 +396,8 @@ export type FleeOutput = z.infer<typeof fleeOutput>;
 
 export const flee: Skill<FleeInput, FleeOutput> = {
   name: 'flee',
-  summary: 'Retreat until a position or entity is at least a set distance away.',
+  summary:
+    'Retreat until a position or entity is at least a set distance away.',
   description: [
     'Walks directly away from a threat until `minDistance` blocks separate it',
     'from the body, and verifies the separation afterwards rather than',
@@ -380,13 +413,21 @@ export const flee: Skill<FleeInput, FleeOutput> = {
     const name = input.entityName ?? '';
     const found = nearestEntity(ctx, name, 64);
     return Promise.resolve(
-      found ? HOLDS : fails(`no entity named "${name}" is sensed, so there is nothing to flee`),
+      found
+        ? HOLDS
+        : fails(
+            `no entity named "${name}" is sensed, so there is nothing to flee`,
+          ),
     );
   },
   run: (ctx, input) =>
     guarded(ctx, async (elapsed) => {
       const minDistance = input.minDistance ?? 16;
-      const interrupted = interruptCheck<FleeOutput>(ctx, elapsed, 'before fleeing');
+      const interrupted = interruptCheck<FleeOutput>(
+        ctx,
+        elapsed,
+        'before fleeing',
+      );
       if (interrupted) return interrupted;
 
       let threat: Vec3Like;
@@ -407,11 +448,15 @@ export const flee: Skill<FleeInput, FleeOutput> = {
       const here = bodyPosition(ctx);
       const gap = distance(here, threat);
       if (gap >= minDistance) {
-        return succeed({ from: threat, position: here, distance: gap, moved: false }, elapsed());
+        return succeed(
+          { from: threat, position: here, distance: gap, moved: false },
+          elapsed(),
+        );
       }
 
       let away = normalize(subtract(here, threat));
-      if (away.x === 0 && away.y === 0 && away.z === 0) away = { x: 1, y: 0, z: 0 };
+      if (away.x === 0 && away.y === 0 && away.z === 0)
+        away = { x: 1, y: 0, z: 0 };
       // Overshoot slightly so arriving at the edge of `range` still clears the
       // threshold rather than landing exactly on it.
       const target = add(here, scale(away, minDistance - gap + 2));
@@ -420,10 +465,17 @@ export const flee: Skill<FleeInput, FleeOutput> = {
       const here2 = bodyPosition(ctx);
       const gap2 = distance(here2, threat);
       if (gap2 >= minDistance) {
-        return succeed({ from: threat, position: here2, distance: gap2, moved: true }, elapsed());
+        return succeed(
+          { from: threat, position: here2, distance: gap2, moved: true },
+          elapsed(),
+        );
       }
 
-      const stillGoing = interruptCheck<FleeOutput>(ctx, elapsed, 'while fleeing');
+      const stillGoing = interruptCheck<FleeOutput>(
+        ctx,
+        elapsed,
+        'while fleeing',
+      );
       if (stillGoing) return stillGoing;
       return fail(
         'unreachable',

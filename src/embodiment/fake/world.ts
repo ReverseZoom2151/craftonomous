@@ -380,7 +380,8 @@ export class FakeWorld {
     const index = stored.contents.findIndex((item) => item.name === name);
     const existing = index >= 0 ? stored.contents[index] : undefined;
     if (existing === undefined) stored.contents.push({ name, count });
-    else stored.contents[index] = { ...existing, count: existing.count + count };
+    else
+      stored.contents[index] = { ...existing, count: existing.count + count };
     return true;
   }
 
@@ -452,7 +453,8 @@ function takeFrom(
     }
     const taken = Math.min(stack.count, remaining);
     remaining -= taken;
-    if (stack.count - taken > 0) next.push({ ...stack, count: stack.count - taken });
+    if (stack.count - taken > 0)
+      next.push({ ...stack, count: stack.count - taken });
   }
   return next;
 }
@@ -461,7 +463,8 @@ function parseKey(k: string): Vec3Like | undefined {
   const parts = k.split(',');
   if (parts.length !== 3) return undefined;
   const [xs, ys, zs] = parts;
-  if (xs === undefined || ys === undefined || zs === undefined) return undefined;
+  if (xs === undefined || ys === undefined || zs === undefined)
+    return undefined;
   const x = Number(xs);
   const y = Number(ys);
   const z = Number(zs);

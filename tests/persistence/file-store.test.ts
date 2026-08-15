@@ -5,14 +5,20 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { vec3 } from '../../src/embodiment/geometry.js';
 import { observe } from '../../src/observation/observed.js';
 import { WorldMemory } from '../../src/perception/memory.js';
-import { applySnapshot, captureSnapshot } from '../../src/persistence/capture.js';
+import {
+  applySnapshot,
+  captureSnapshot,
+} from '../../src/persistence/capture.js';
 import {
   PersistenceError,
   SnapshotVersionError,
 } from '../../src/persistence/errors.js';
 import { FileStore } from '../../src/persistence/file-store.js';
 import type { Snapshot } from '../../src/persistence/snapshot.js';
-import { emptySnapshot, SCHEMA_VERSION } from '../../src/persistence/snapshot.js';
+import {
+  emptySnapshot,
+  SCHEMA_VERSION,
+} from '../../src/persistence/snapshot.js';
 import { ManualClock } from '../../src/runtime/clock.js';
 import { ReliabilityTracker } from '../../src/skills/reliability.js';
 
@@ -35,7 +41,12 @@ function populated(): Snapshot {
   const memory = new WorldMemory(new ManualClock(0));
   memory.remember(
     observe(
-      { name: 'iron_ore', position: vec3(12, 40, -7), solid: true, hardness: 3 },
+      {
+        name: 'iron_ore',
+        position: vec3(12, 40, -7),
+        solid: true,
+        hardness: 3,
+      },
       'sight',
       1_000,
     ),
@@ -96,7 +107,9 @@ describe('FileStore round trip', () => {
 
 describe('FileStore failure handling', () => {
   it('treats a missing file as an empty result, since first run is normal', async () => {
-    expect(await store.load(join(directory, 'nothing-here.json'))).toBeUndefined();
+    expect(
+      await store.load(join(directory, 'nothing-here.json')),
+    ).toBeUndefined();
   });
 
   it('reports malformed JSON with a message naming the file', async () => {

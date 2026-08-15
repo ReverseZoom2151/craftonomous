@@ -266,7 +266,9 @@ export function createLiveExecutor(deps: LiveExecutorDeps): RecordingExecutor {
 
       // The agent is told what it is being measured on, in the suite's own
       // words. Nothing here paraphrases the goal into something easier.
-      loop.goals.push(`${task.title}: ${task.goal}`, { tags: ['eval', task.id] });
+      loop.goals.push(`${task.title}: ${task.goal}`, {
+        tags: ['eval', task.id],
+      });
 
       trace = await loop.run();
       const steps = trace.steps.length;
@@ -316,7 +318,11 @@ export function createLiveExecutor(deps: LiveExecutorDeps): RecordingExecutor {
           );
         case 'error':
           return finish(
-            errorOutcome(steps, durationMs, `agent loop failed: ${trace.reason}`),
+            errorOutcome(
+              steps,
+              durationMs,
+              `agent loop failed: ${trace.reason}`,
+            ),
             goal,
           );
         case 'done':

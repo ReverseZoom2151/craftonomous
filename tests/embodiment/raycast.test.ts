@@ -34,44 +34,30 @@ describe('traverse', () => {
   });
 
   it('visits one voxel when both ends sit in the same block', () => {
-    expect(visited({ x: 0.1, y: 0.1, z: 0.1 }, { x: 0.9, y: 0.9, z: 0.9 })).toEqual([
-      '0,0,0',
-    ]);
+    expect(
+      visited({ x: 0.1, y: 0.1, z: 0.1 }, { x: 0.9, y: 0.9, z: 0.9 }),
+    ).toEqual(['0,0,0']);
   });
 
   it('walks an axis-aligned ray one voxel at a time', () => {
-    expect(visited({ x: 0.5, y: 0.5, z: 0.5 }, { x: 4.5, y: 0.5, z: 0.5 })).toEqual([
-      '0,0,0',
-      '1,0,0',
-      '2,0,0',
-      '3,0,0',
-      '4,0,0',
-    ]);
+    expect(
+      visited({ x: 0.5, y: 0.5, z: 0.5 }, { x: 4.5, y: 0.5, z: 0.5 }),
+    ).toEqual(['0,0,0', '1,0,0', '2,0,0', '3,0,0', '4,0,0']);
   });
 
   it('walks the other two axes just as evenly', () => {
-    expect(visited({ x: 0.5, y: 0.5, z: 0.5 }, { x: 0.5, y: 3.5, z: 0.5 })).toEqual([
-      '0,0,0',
-      '0,1,0',
-      '0,2,0',
-      '0,3,0',
-    ]);
-    expect(visited({ x: 0.5, y: 0.5, z: 0.5 }, { x: 0.5, y: 0.5, z: 3.5 })).toEqual([
-      '0,0,0',
-      '0,0,1',
-      '0,0,2',
-      '0,0,3',
-    ]);
+    expect(
+      visited({ x: 0.5, y: 0.5, z: 0.5 }, { x: 0.5, y: 3.5, z: 0.5 }),
+    ).toEqual(['0,0,0', '0,1,0', '0,2,0', '0,3,0']);
+    expect(
+      visited({ x: 0.5, y: 0.5, z: 0.5 }, { x: 0.5, y: 0.5, z: 3.5 }),
+    ).toEqual(['0,0,0', '0,0,1', '0,0,2', '0,0,3']);
   });
 
   it('walks negative directions', () => {
-    expect(visited({ x: 2.5, y: 0.5, z: 0.5 }, { x: -1.5, y: 0.5, z: 0.5 })).toEqual([
-      '2,0,0',
-      '1,0,0',
-      '0,0,0',
-      '-1,0,0',
-      '-2,0,0',
-    ]);
+    expect(
+      visited({ x: 2.5, y: 0.5, z: 0.5 }, { x: -1.5, y: 0.5, z: 0.5 }),
+    ).toEqual(['2,0,0', '1,0,0', '0,0,0', '-1,0,0', '-2,0,0']);
   });
 
   it('starts stepping immediately when the origin sits on a boundary', () => {
@@ -83,7 +69,10 @@ describe('traverse', () => {
   });
 
   it('reaches the destination voxel of a diagonal ray', () => {
-    const seen = visited({ x: 0.5, y: 0.5, z: 0.5 }, { x: 4.5, y: 4.5, z: 4.5 });
+    const seen = visited(
+      { x: 0.5, y: 0.5, z: 0.5 },
+      { x: 4.5, y: 4.5, z: 4.5 },
+    );
     expect(seen[0]).toBe('0,0,0');
     expect(seen.at(-1)).toBe('4,4,4');
   });
@@ -100,30 +89,41 @@ describe('traverse', () => {
       expect(a).toBeDefined();
       expect(b).toBeDefined();
       if (a === undefined || b === undefined) continue;
-      const delta = Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z);
+      const delta =
+        Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z);
       expect(delta).toBe(1);
     }
     expect(seen.at(-1)).toEqual({ x: 9, y: -5, z: 6 });
   });
 
   it('stops at the first block the visitor claims', () => {
-    const hit = traverse({ x: 0.5, y: 0.5, z: 0.5 }, { x: 9.5, y: 0.5, z: 0.5 }, (p) =>
-      p.x === 4,
+    const hit = traverse(
+      { x: 0.5, y: 0.5, z: 0.5 },
+      { x: 9.5, y: 0.5, z: 0.5 },
+      (p) => p.x === 4,
     );
     expect(hit).toEqual({ x: 4, y: 0, z: 0 });
   });
 
   it('reports the origin block when the visitor claims it', () => {
-    const hit = traverse({ x: 0.5, y: 0.5, z: 0.5 }, { x: 9.5, y: 0.5, z: 0.5 }, () => true);
+    const hit = traverse(
+      { x: 0.5, y: 0.5, z: 0.5 },
+      { x: 9.5, y: 0.5, z: 0.5 },
+      () => true,
+    );
     expect(hit).toEqual({ x: 0, y: 0, z: 0 });
   });
 
   it('terminates on a very long ray instead of looping forever', () => {
     let count = 0;
-    const hit = traverse({ x: 0.5, y: 0.5, z: 0.5 }, { x: 1e9, y: 0.5, z: 0.5 }, () => {
-      count += 1;
-      return false;
-    });
+    const hit = traverse(
+      { x: 0.5, y: 0.5, z: 0.5 },
+      { x: 1e9, y: 0.5, z: 0.5 },
+      () => {
+        count += 1;
+        return false;
+      },
+    );
     expect(hit).toBeUndefined();
     expect(count).toBeLessThanOrEqual(MAX_TRAVERSAL_STEPS + 1);
     expect(count).toBeGreaterThan(1);
@@ -149,7 +149,9 @@ describe('traverse', () => {
       count += 1;
       return false;
     };
-    expect(traverse({ x: NaN, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, tally)).toBeUndefined();
+    expect(
+      traverse({ x: NaN, y: 0, z: 0 }, { x: 1, y: 0, z: 0 }, tally),
+    ).toBeUndefined();
     expect(
       traverse({ x: 0, y: 0, z: 0 }, { x: Infinity, y: 0, z: 0 }, tally),
     ).toBeUndefined();
@@ -160,15 +162,19 @@ describe('traverse', () => {
 describe('isOccluded', () => {
   it('reports a clear line of sight', () => {
     expect(
-      isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 20.5, y: 0.5, z: 0.5 }, never),
+      isOccluded(
+        { x: 0.5, y: 0.5, z: 0.5 },
+        { x: 20.5, y: 0.5, z: 0.5 },
+        never,
+      ),
     ).toBe(false);
   });
 
   it('reports a wall between the two points', () => {
     const wall = solidSet({ x: 5, y: 0, z: 0 });
-    expect(isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 10.5, y: 0.5, z: 0.5 }, wall)).toBe(
-      true,
-    );
+    expect(
+      isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 10.5, y: 0.5, z: 0.5 }, wall),
+    ).toBe(true);
   });
 
   it('sees along an axis through a gap in a wall', () => {
@@ -179,63 +185,79 @@ describe('isOccluded', () => {
       solids.push({ x: 5, y, z: 0 });
     }
     const wall = solidSet(...solids);
-    expect(isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 10.5, y: 0.5, z: 0.5 }, wall)).toBe(
-      false,
-    );
-    expect(isOccluded({ x: 0.5, y: 1.5, z: 0.5 }, { x: 10.5, y: 1.5, z: 0.5 }, wall)).toBe(
-      true,
-    );
+    expect(
+      isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 10.5, y: 0.5, z: 0.5 }, wall),
+    ).toBe(false);
+    expect(
+      isOccluded({ x: 0.5, y: 1.5, z: 0.5 }, { x: 10.5, y: 1.5, z: 0.5 }, wall),
+    ).toBe(true);
   });
 
   it('is not fooled by a diagonal sightline into an adjacent column', () => {
     const wall = solidSet({ x: 5, y: 0, z: 0 }, { x: 5, y: 1, z: 0 });
-    expect(isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 9.5, y: 1.5, z: 0.5 }, wall)).toBe(
-      true,
-    );
+    expect(
+      isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 9.5, y: 1.5, z: 0.5 }, wall),
+    ).toBe(true);
   });
 
   it('blocks a diagonal ray on every axis at once', () => {
     const wall = solidSet({ x: 2, y: 2, z: 2 });
-    expect(isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 4.5, y: 4.5, z: 4.5 }, wall)).toBe(
-      true,
-    );
+    expect(
+      isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 4.5, y: 4.5, z: 4.5 }, wall),
+    ).toBe(true);
   });
 
   it('is not blocked by the block the agent stands in', () => {
     // Standing inside stone, looking at open air one block away.
     const inside = solidSet({ x: 0, y: 0, z: 0 });
-    expect(isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 3.5, y: 0.5, z: 0.5 }, inside)).toBe(
-      false,
-    );
+    expect(
+      isOccluded(
+        { x: 0.5, y: 0.5, z: 0.5 },
+        { x: 3.5, y: 0.5, z: 0.5 },
+        inside,
+      ),
+    ).toBe(false);
   });
 
   it('is not blocked by the block being looked at', () => {
     // Looking directly at an ore block: the ore itself must not hide itself.
     const ore = solidSet({ x: 6, y: 0, z: 0 });
-    expect(isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 6.5, y: 0.5, z: 0.5 }, ore)).toBe(
-      false,
-    );
+    expect(
+      isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 6.5, y: 0.5, z: 0.5 }, ore),
+    ).toBe(false);
   });
 
   it('is not blocked when both endpoints share a solid block', () => {
     const inside = solidSet({ x: 0, y: 0, z: 0 });
-    expect(isOccluded({ x: 0.2, y: 0.2, z: 0.2 }, { x: 0.8, y: 0.8, z: 0.8 }, inside)).toBe(
-      false,
-    );
+    expect(
+      isOccluded(
+        { x: 0.2, y: 0.2, z: 0.2 },
+        { x: 0.8, y: 0.8, z: 0.8 },
+        inside,
+      ),
+    ).toBe(false);
   });
 
   it('is not blocked by an adjacent target, however solid its surroundings', () => {
     const everything = () => true;
-    expect(isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 1.5, y: 0.5, z: 0.5 }, everything)).toBe(
-      false,
-    );
+    expect(
+      isOccluded(
+        { x: 0.5, y: 0.5, z: 0.5 },
+        { x: 1.5, y: 0.5, z: 0.5 },
+        everything,
+      ),
+    ).toBe(false);
   });
 
   it('blocks a target two blocks away with solid matter between', () => {
     const everything = () => true;
-    expect(isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 2.5, y: 0.5, z: 0.5 }, everything)).toBe(
-      true,
-    );
+    expect(
+      isOccluded(
+        { x: 0.5, y: 0.5, z: 0.5 },
+        { x: 2.5, y: 0.5, z: 0.5 },
+        everything,
+      ),
+    ).toBe(true);
   });
 
   it('reports zero-length rays as clear', () => {
@@ -254,7 +276,11 @@ describe('isOccluded', () => {
 
   it('reports a very long unobstructed ray as clear rather than hanging', () => {
     expect(
-      isOccluded({ x: 0.5, y: 0.5, z: 0.5 }, { x: 1e7, y: 500.5, z: 0.5 }, never),
+      isOccluded(
+        { x: 0.5, y: 0.5, z: 0.5 },
+        { x: 1e7, y: 500.5, z: 0.5 },
+        never,
+      ),
     ).toBe(false);
   });
 });
@@ -262,16 +288,24 @@ describe('isOccluded', () => {
 describe('firstSolid', () => {
   it('reports the origin block when the agent is buried', () => {
     const inside = solidSet({ x: 0, y: 0, z: 0 });
-    expect(firstSolid({ x: 0.5, y: 0.5, z: 0.5 }, { x: 5.5, y: 0.5, z: 0.5 }, inside)).toEqual(
-      { x: 0, y: 0, z: 0 },
-    );
+    expect(
+      firstSolid(
+        { x: 0.5, y: 0.5, z: 0.5 },
+        { x: 5.5, y: 0.5, z: 0.5 },
+        inside,
+      ),
+    ).toEqual({ x: 0, y: 0, z: 0 });
   });
 
   it('reports the nearest solid block along the ray', () => {
     const solids = solidSet({ x: 7, y: 0, z: 0 }, { x: 3, y: 0, z: 0 });
-    expect(firstSolid({ x: 0.5, y: 0.5, z: 0.5 }, { x: 9.5, y: 0.5, z: 0.5 }, solids)).toEqual(
-      { x: 3, y: 0, z: 0 },
-    );
+    expect(
+      firstSolid(
+        { x: 0.5, y: 0.5, z: 0.5 },
+        { x: 9.5, y: 0.5, z: 0.5 },
+        solids,
+      ),
+    ).toEqual({ x: 3, y: 0, z: 0 });
   });
 
   it('returns undefined for a clear ray', () => {

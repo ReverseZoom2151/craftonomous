@@ -176,10 +176,7 @@ function describeEntity(e: EntityInfo, origin: Vec3Like): string {
 }
 
 /** Sighted before remembered, then freshest first: the useful reading order. */
-function freshestFirst(
-  a: Observed<unknown>,
-  b: Observed<unknown>,
-): number {
+function freshestFirst(a: Observed<unknown>, b: Observed<unknown>): number {
   const am = a.provenance === 'memory' ? 1 : 0;
   const bm = b.provenance === 'memory' ? 1 : 0;
   if (am !== bm) return am - bm;
@@ -231,7 +228,9 @@ export function buildDigest(
   const seenKeys = new Set(found.map((o) => posKey(o.value.position)));
   const allBlocks = [
     ...found,
-    ...world.recollections().filter((o) => !seenKeys.has(posKey(o.value.position))),
+    ...world
+      .recollections()
+      .filter((o) => !seenKeys.has(posKey(o.value.position))),
   ].sort(freshestFirst);
 
   const container = world.openContainer();

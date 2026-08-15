@@ -50,7 +50,9 @@ export function isValidToolName(name: string): boolean {
 }
 
 /** Convert a zod schema to JSON Schema, with no `$schema` or `definitions`. */
-export function toJsonSchema(schema: ZodType<unknown>): Record<string, unknown> {
+export function toJsonSchema(
+  schema: ZodType<unknown>,
+): Record<string, unknown> {
   const converted = zodToJsonSchema(
     schema as unknown as ZodSchema<unknown>,
     CONVERSION,

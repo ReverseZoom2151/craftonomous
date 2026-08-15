@@ -39,7 +39,11 @@ describe('hearing', () => {
 
   it('does not hear a sound outside the range, and does not count it', () => {
     const { world, view } = setup();
-    world.emitSound('entity.zombie.ambient', vec3(FAIR_PLAY.hearingRange + 5, 65, 0), 1);
+    world.emitSound(
+      'entity.zombie.ambient',
+      vec3(FAIR_PLAY.hearingRange + 5, 65, 0),
+      1,
+    );
 
     expect(view.sounds()).toHaveLength(0);
     expect(view.report().total).toBe(0);
@@ -67,7 +71,9 @@ describe('hearing', () => {
     // The exact source is not on the value, under any key and at any depth.
     expect(JSON.stringify(heard?.value)).not.toContain('-10');
     expect(Object.keys(heard?.value ?? {})).not.toContain('position');
-    expect(Object.keys(heard?.value ?? {})).not.toContain('approximatePosition');
+    expect(Object.keys(heard?.value ?? {})).not.toContain(
+      'approximatePosition',
+    );
   });
 
   it('reports elevation coarsely, not as a height', () => {

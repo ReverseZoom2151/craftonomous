@@ -112,7 +112,9 @@ describe('tool list generation', () => {
   });
 
   it('combines summary and description so an agent can choose', () => {
-    const description = describeSkill(moveSkill as unknown as Skill<never, unknown>);
+    const description = describeSkill(
+      moveSkill as unknown as Skill<never, unknown>,
+    );
     expect(description).toContain('move.to summary');
     expect(description).toContain('Do not use it when something else fits.');
   });

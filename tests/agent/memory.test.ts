@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { AgentMemory, createSummariser } from '../../src/agent/memory.js';
 import { ManualClock } from '../../src/runtime/clock.js';
 
-const mem = (options: Partial<{ budgetChars: number; keepRecent: number }> = {}) => {
+const mem = (
+  options: Partial<{ budgetChars: number; keepRecent: number }> = {},
+) => {
   const clock = new ManualClock(1000);
   return {
     clock,
@@ -100,7 +102,8 @@ describe('durable knowledge', () => {
     memory.learn('zombies burn at dawn', 'observation');
     memory.remember('base', { x: 10, y: 64, z: -20 }, 'the first shelter');
 
-    for (let i = 0; i < 40; i++) memory.append('action', `noise ${i} padding text`);
+    for (let i = 0; i < 40; i++)
+      memory.append('action', `noise ${i} padding text`);
 
     expect(memory.facts()).toHaveLength(1);
     expect(memory.facts()[0]?.text).toBe('zombies burn at dawn');

@@ -77,7 +77,9 @@ describe('explore', () => {
 
     // Distinct targets: the failure mode this pattern exists to rule out is a
     // body bouncing between two spots and calling it exploration.
-    const seen = new Set(targets.map((t) => `${t.x.toFixed(3)},${t.z.toFixed(3)}`));
+    const seen = new Set(
+      targets.map((t) => `${t.x.toFixed(3)},${t.z.toFixed(3)}`),
+    );
     expect(seen.size).toBe(targets.length);
 
     // And the pattern is outward: each ring of eight sits further from the
@@ -131,7 +133,9 @@ describe('explore', () => {
       searchRadius: 8,
     });
 
-    expect(explore.input.safeParse({ looking_for: 'oak_log' }).success).toBe(true);
+    expect(explore.input.safeParse({ looking_for: 'oak_log' }).success).toBe(
+      true,
+    );
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.found).toBe(true);
@@ -160,7 +164,10 @@ describe('explore', () => {
   /* ---------------------------------------------------------------- */
 
   it('fails unreachable when the body cannot be moved at all', async () => {
-    const h = harness({ blocks: ground(28) }, { moveTo: () => refuse('walled in') });
+    const h = harness(
+      { blocks: ground(28) },
+      { moveTo: () => refuse('walled in') },
+    );
     const result = await explore.run(h.ctx, {});
 
     expect(result.ok).toBe(false);
@@ -201,7 +208,11 @@ describe('explore', () => {
       { blocks: ground(28) },
       {
         moveTo: (position) => {
-          h.world.moveBody({ x: position.x / 2, y: position.y, z: position.z / 2 });
+          h.world.moveBody({
+            x: position.x / 2,
+            y: position.y,
+            z: position.z / 2,
+          });
           return refuse('gave up halfway');
         },
       },
@@ -263,7 +274,9 @@ describe('explore', () => {
   });
 
   it('refuses to explore for something already in plain sight', async () => {
-    const h = harness({ blocks: [...ground(28), block('oak_log', at(4, 64, 0))] });
+    const h = harness({
+      blocks: [...ground(28), block('oak_log', at(4, 64, 0))],
+    });
     const check = await precondition(explore, h.ctx, { lookingFor: 'oak_log' });
 
     expect(check.holds).toBe(false);
@@ -274,7 +287,9 @@ describe('explore', () => {
   it('hands back the location instead of failing when run anyway', async () => {
     // The precondition and the run can disagree because the world moves
     // between them; the useful answer is where the thing is.
-    const h = harness({ blocks: [...ground(28), block('oak_log', at(4, 64, 0))] });
+    const h = harness({
+      blocks: [...ground(28), block('oak_log', at(4, 64, 0))],
+    });
     const result = await explore.run(h.ctx, { lookingFor: 'oak_log' });
 
     expect(result.ok).toBe(true);

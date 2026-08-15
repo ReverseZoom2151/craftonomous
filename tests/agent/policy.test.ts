@@ -27,7 +27,9 @@ function input(overrides: Overrides = {}): PolicyInput {
   const goals = new GoalStack({ clock });
   if (overrides.goal !== undefined) goals.push(overrides.goal);
   return {
-    digest: buildDigest(world, clock.now(), { blockNames: ['iron_ore', 'oak_log'] }),
+    digest: buildDigest(world, clock.now(), {
+      blockNames: ['iron_ore', 'oak_log'],
+    }),
     goal: goals.current(),
     goals: goals.stack(),
     memory: new AgentMemory({ clock }).snapshot(),
@@ -174,9 +176,15 @@ describe('RulePolicy', () => {
         goal: 'gather 2 iron_ore',
         world: (w, now) => {
           w.remembered = [
-            obs(block('iron_ore', { x: 99, y: 40, z: 99 }), 'memory', now - 200_000),
+            obs(
+              block('iron_ore', { x: 99, y: 40, z: 99 }),
+              'memory',
+              now - 200_000,
+            ),
           ];
-          w.blocks = [obs(block('iron_ore', { x: 1, y: 40, z: 1 }), 'sight', now)];
+          w.blocks = [
+            obs(block('iron_ore', { x: 1, y: 40, z: 1 }), 'sight', now),
+          ];
         },
       }),
     );
@@ -197,7 +205,11 @@ describe('RulePolicy', () => {
         goal: 'gather 1 iron_ore',
         world: (w, now) => {
           w.remembered = [
-            obs(block('iron_ore', { x: 9, y: 40, z: 9 }), 'memory', now - 200_000),
+            obs(
+              block('iron_ore', { x: 9, y: 40, z: 9 }),
+              'memory',
+              now - 200_000,
+            ),
           ];
         },
       }),
@@ -280,9 +292,9 @@ describe('RulePolicy', () => {
 
 describe('descriptions', () => {
   it('renders decisions and outcomes for a trace', () => {
-    expect(describeDecision({ kind: 'skill', name: 'dig', input: { n: 1 } })).toBe(
-      'skill dig({"n":1})',
-    );
+    expect(
+      describeDecision({ kind: 'skill', name: 'dig', input: { n: 1 } }),
+    ).toBe('skill dig({"n":1})');
     expect(describeDecision({ kind: 'done', reason: 'tired' })).toBe(
       'done: tired',
     );

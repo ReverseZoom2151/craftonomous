@@ -157,7 +157,10 @@ export function hashManifest(manifest: TaskManifest): string {
     `version:${manifest.version}`,
     ...lines.map((l) => `task:${l}`),
   ].join('\n');
-  return createHash('sha256').update(payload, 'utf8').digest('hex').slice(0, 16);
+  return createHash('sha256')
+    .update(payload, 'utf8')
+    .digest('hex')
+    .slice(0, 16);
 }
 
 /** Convenience: every distinct perception profile a manifest demands. */
@@ -165,9 +168,6 @@ export function requiredProfiles(manifest: TaskManifest): readonly string[] {
   return [...new Set(manifest.tasks.map((t) => t.profile))].sort();
 }
 
-export function findTask(
-  manifest: TaskManifest,
-  id: string,
-): Task | undefined {
+export function findTask(manifest: TaskManifest, id: string): Task | undefined {
   return manifest.tasks.find((t) => t.id === id);
 }

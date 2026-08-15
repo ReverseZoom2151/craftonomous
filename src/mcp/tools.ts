@@ -280,7 +280,11 @@ export class ToolDispatcher {
     // arguments against the skill's zod schema before anything acts.
     const input = unwrapArguments(definition, args);
     try {
-      const result = await this.#invoker.run(name, input, this.#context(signal));
+      const result = await this.#invoker.run(
+        name,
+        input,
+        this.#context(signal),
+      );
       return toCallToolResult(name, result);
     } catch (error) {
       // A throw from the runner is a bug or an abort, not a skill outcome. It

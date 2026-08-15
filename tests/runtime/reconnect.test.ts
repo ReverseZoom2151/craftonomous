@@ -19,7 +19,9 @@ interface Emitter extends LifecycleSource {
 }
 
 function emitter(): Emitter {
-  const listeners = new Set<(e: { kind: string; generation?: number }) => void>();
+  const listeners = new Set<
+    (e: { kind: string; generation?: number }) => void
+  >();
   return {
     on(listener) {
       listeners.add(listener);
@@ -34,7 +36,10 @@ function emitter(): Emitter {
   };
 }
 
-function sessionWithLifecycle(lifecycle: LifecycleSource, log = new MemoryLogger()) {
+function sessionWithLifecycle(
+  lifecycle: LifecycleSource,
+  log = new MemoryLogger(),
+) {
   const world = new FakeWorld();
   world.setBlock({ x: 3, y: 64, z: 0 }, 'iron_ore');
   world.setBlock({ x: 4, y: 64, z: 0 }, 'stone');
@@ -58,7 +63,15 @@ function sessionWithLifecycle(lifecycle: LifecycleSource, log = new MemoryLogger
  * `recollections()` would read empty for a reason unrelated to the thing under
  * test, so the assertion would pass while proving nothing.
  */
-function rememberThenWalkAway(world: FakeWorld, view: { findBlocks: (o: { names: readonly string[]; maxDistance: number }) => unknown }): void {
+function rememberThenWalkAway(
+  world: FakeWorld,
+  view: {
+    findBlocks: (o: {
+      names: readonly string[];
+      maxDistance: number;
+    }) => unknown;
+  },
+): void {
   view.findBlocks({ names: ['iron_ore', 'stone'], maxDistance: 32 });
   world.setBody({
     position: { x: 900, y: 64, z: 900 },

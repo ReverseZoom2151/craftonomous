@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { SkillRegistry } from '../../../src/skills/registry.js';
-import { CORE_SKILLS, registerCoreSkills } from '../../../src/skills/library/index.js';
+import {
+  CORE_SKILLS,
+  registerCoreSkills,
+} from '../../../src/skills/library/index.js';
 
 describe('CORE_SKILLS', () => {
   it('registers cleanly and is reachable by name', () => {

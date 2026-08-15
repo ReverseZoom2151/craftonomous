@@ -48,12 +48,15 @@ function findTarget(
   input: AttackEntityInput,
   maxDistance: number,
 ): Observed<EntityInfo> | undefined {
-  if (input.entityId !== undefined) return entityById(ctx, input.entityId, maxDistance);
+  if (input.entityId !== undefined)
+    return entityById(ctx, input.entityId, maxDistance);
   return nearestEntity(ctx, input.name ?? '', maxDistance);
 }
 
 function describe(input: AttackEntityInput): string {
-  return input.entityId !== undefined ? `entity #${input.entityId}` : `"${input.name ?? ''}"`;
+  return input.entityId !== undefined
+    ? `entity #${input.entityId}`
+    : `"${input.name ?? ''}"`;
 }
 
 export const attackEntity: Skill<AttackEntityInput, AttackEntityOutput> = {
@@ -80,7 +83,9 @@ export const attackEntity: Skill<AttackEntityInput, AttackEntityOutput> = {
     return Promise.resolve(
       target
         ? HOLDS
-        : fails(`${describe(input)} is not sensed within ${maxDistance} blocks`),
+        : fails(
+            `${describe(input)} is not sensed within ${maxDistance} blocks`,
+          ),
     );
   },
   run: (ctx, input) =>
@@ -141,7 +146,11 @@ export const attackEntity: Skill<AttackEntityInput, AttackEntityOutput> = {
               elapsed(),
             );
           }
-          const moved = await moveWithin(ctx, target.value.position, MELEE_RANGE - 1);
+          const moved = await moveWithin(
+            ctx,
+            target.value.position,
+            MELEE_RANGE - 1,
+          );
           if (!moved.ok) {
             const interrupted = interruptCheck<AttackEntityOutput>(
               ctx,
@@ -159,7 +168,11 @@ export const attackEntity: Skill<AttackEntityInput, AttackEntityOutput> = {
 
         const outcome = await ctx.act.attack(id);
         if (!outcome.ok) {
-          const interrupted = interruptCheck<AttackEntityOutput>(ctx, elapsed, 'mid-swing');
+          const interrupted = interruptCheck<AttackEntityOutput>(
+            ctx,
+            elapsed,
+            'mid-swing',
+          );
           if (interrupted) return interrupted;
           return fail(
             'unknown',

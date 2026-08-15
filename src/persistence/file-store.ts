@@ -39,7 +39,8 @@ export class FileStore {
 
   constructor(options: FileStoreOptions = {}) {
     this.#renameAttempts = options.renameAttempts ?? DEFAULT_RENAME_ATTEMPTS;
-    this.#renameBackoffMs = options.renameBackoffMs ?? DEFAULT_RENAME_BACKOFF_MS;
+    this.#renameBackoffMs =
+      options.renameBackoffMs ?? DEFAULT_RENAME_BACKOFF_MS;
     this.#pretty = options.pretty ?? false;
     if (this.#renameAttempts < 1) {
       throw new RangeError(
@@ -141,7 +142,8 @@ export class FileStore {
         return;
       } catch (error) {
         const code = errorCode(error);
-        const retryable = code !== undefined && TRANSIENT_RENAME_CODES.has(code);
+        const retryable =
+          code !== undefined && TRANSIENT_RENAME_CODES.has(code);
         if (!retryable || attempt >= this.#renameAttempts) throw error;
         await delay(this.#renameBackoffMs * attempt);
       }

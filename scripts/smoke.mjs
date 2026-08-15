@@ -36,7 +36,10 @@ import { existsSync } from 'node:fs';
 import { clearTimeout, setTimeout } from 'node:timers';
 import { fileURLToPath, URL } from 'node:url';
 
-const BINDING_URL = new URL('../dist/embodiment/mineflayer/binding.js', import.meta.url);
+const BINDING_URL = new URL(
+  '../dist/embodiment/mineflayer/binding.js',
+  import.meta.url,
+);
 
 const HOST = process.env.MINECRAFT_HOST ?? '127.0.0.1';
 const PORT = Number(process.env.MINECRAFT_PORT ?? '25565');
@@ -139,7 +142,9 @@ async function main() {
     );
   }
   if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
-    throw new Error(`MINECRAFT_PORT is not a valid port: ${process.env.MINECRAFT_PORT}`);
+    throw new Error(
+      `MINECRAFT_PORT is not a valid port: ${process.env.MINECRAFT_PORT}`,
+    );
   }
   if (!existsSync(fileURLToPath(BINDING_URL))) {
     throw new Error(
@@ -159,7 +164,9 @@ async function main() {
         port: PORT,
         username: USERNAME,
         auth: 'offline',
-        ...(VERSION === undefined || VERSION === '' ? {} : { version: VERSION }),
+        ...(VERSION === undefined || VERSION === ''
+          ? {}
+          : { version: VERSION }),
         spawnTimeoutMs: SPAWN_TIMEOUT_MS,
         // Exactly one attempt. No reconnect loop lives in this harness.
         reconnect: { enabled: false, maxAttempts: 1 },
@@ -172,7 +179,11 @@ async function main() {
     return;
   }
   pass('connect and spawn', `${Date.now() - startedAt}ms`);
-  check('port reports connected', body.connected === true, 'connected was false after spawn');
+  check(
+    'port reports connected',
+    body.connected === true,
+    'connected was false after spawn',
+  );
 
   const { sensors, actuators } = body;
 
@@ -185,7 +196,9 @@ async function main() {
     );
     check(
       'position is finite',
-      finite(state.position.x) && finite(state.position.y) && finite(state.position.z),
+      finite(state.position.x) &&
+        finite(state.position.y) &&
+        finite(state.position.z),
       `got ${JSON.stringify(state.position)}`,
     );
     check(
@@ -224,7 +237,9 @@ async function main() {
       `yaw ${state.yaw}, pitch ${state.pitch}`,
     );
     if (!state.onGround) {
-      note('warning: the bot is not on the ground yet; it may still be falling into the world');
+      note(
+        'warning: the bot is not on the ground yet; it may still be falling into the world',
+      );
     }
 
     // --- 3. Block reads ---------------------------------------------------
@@ -263,14 +278,20 @@ async function main() {
       'blockAt returned undefined at head height',
     );
     if (atEye !== undefined && atEye.solid) {
-      note(`warning: head height reads ${atEye.name}, which is solid; the bot is inside something`);
+      note(
+        `warning: head height reads ${atEye.name}, which is solid; the bot is inside something`,
+      );
     }
 
     // A block far outside any loaded chunk must read as unknown rather than as
     // an invented value. Getting a BlockInfo back here would mean the sensor is
     // guessing, which is the one failure mode the perception budget cannot
     // survive.
-    const faraway = sensors.blockAt({ x: feet.x + 4096, y: feet.y, z: feet.z + 4096 });
+    const faraway = sensors.blockAt({
+      x: feet.x + 4096,
+      y: feet.y,
+      z: feet.z + 4096,
+    });
     check(
       'unloaded blocks read as unknown',
       faraway === undefined,
@@ -312,7 +333,9 @@ async function main() {
       'a ray from the eye into the ground came back clear, so occlusion is not being applied',
     );
     if (upOccluded) {
-      note('note: the sky is not visible from here, so the open-air case was not exercised');
+      note(
+        'note: the sky is not visible from here, so the open-air case was not exercised',
+      );
     }
     check(
       'a zero-length ray is not occluded',
@@ -374,7 +397,9 @@ async function main() {
     );
     check(
       'the bot does not see itself as another entity',
-      entities.every((e) => distance(e.position, sensors.body().position) > 1e-9),
+      entities.every(
+        (e) => distance(e.position, sensors.body().position) > 1e-9,
+      ),
       'an entity was reported at exactly the bot position, which is the bot itself leaking into sight',
     );
     check(

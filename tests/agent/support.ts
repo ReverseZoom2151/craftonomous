@@ -15,10 +15,7 @@ import type { PerceptionProfile } from '../../src/perception/profile.js';
 import type { WorldView } from '../../src/perception/world-view.js';
 import type { HeardSound } from '../../src/perception/adapter.js';
 import type { Testimony } from '../../src/perception/testimony.js';
-import type {
-  InvocationResult,
-  SkillInvoker,
-} from '../../src/agent/policy.js';
+import type { InvocationResult, SkillInvoker } from '../../src/agent/policy.js';
 
 /**
  * A hand-built WorldView. The agent under test cannot tell this from a real

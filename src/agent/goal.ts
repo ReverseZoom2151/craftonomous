@@ -91,7 +91,13 @@ export class GoalStack {
    */
   pop(): Goal | undefined {
     const goal = this.#stack.pop();
-    if (goal) this.#record({ ...goal, status: 'abandoned', resolvedAt: this.#clock.now(), reason: 'popped without a reason' });
+    if (goal)
+      this.#record({
+        ...goal,
+        status: 'abandoned',
+        resolvedAt: this.#clock.now(),
+        reason: 'popped without a reason',
+      });
     return goal;
   }
 
@@ -160,13 +166,17 @@ export class GoalStack {
       lines.push('no active goal');
     } else {
       this.#stack.forEach((g, i) => {
-        lines.push(`${'  '.repeat(i)}${i === this.#stack.length - 1 ? '→' : '·'} ${g.description}`);
+        lines.push(
+          `${'  '.repeat(i)}${i === this.#stack.length - 1 ? '→' : '·'} ${g.description}`,
+        );
       });
     }
     if (this.#history.length > 0) {
       lines.push('previously:');
       for (const g of this.#history.slice(-5)) {
-        lines.push(`  ${g.status}: ${g.description}${g.reason === undefined ? '' : ` (${g.reason})`}`);
+        lines.push(
+          `  ${g.status}: ${g.description}${g.reason === undefined ? '' : ` (${g.reason})`}`,
+        );
       }
     }
     return lines.join('\n');

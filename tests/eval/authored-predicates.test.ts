@@ -46,7 +46,11 @@ describe('authored goal predicates', () => {
 
   it('still lets a caller override an authored predicate', () => {
     const [, task] = TASKS[0] as [string, (typeof TASKS)[number][1]];
-    const override = { kind: 'item-count', item: 'sentinel', count: 99 } as const;
+    const override = {
+      kind: 'item-count',
+      item: 'sentinel',
+      count: 99,
+    } as const;
     const resolved = predicateFor(task, { [task.id]: override });
     expect(resolved.ok).toBe(true);
     if (resolved.ok) expect(resolved.predicate).toEqual(override);

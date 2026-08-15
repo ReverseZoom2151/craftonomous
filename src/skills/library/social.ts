@@ -34,17 +34,24 @@ export const sendChat: Skill<SendChatInput, SendChatOutput> = {
   output: sendChatOutput,
   precondition: (_ctx, input) => {
     const text = input.message.trim();
-    if (text.length === 0) return Promise.resolve(fails('the message is only whitespace'));
+    if (text.length === 0)
+      return Promise.resolve(fails('the message is only whitespace'));
     if (text.startsWith('/')) {
       return Promise.resolve(
-        fails('chat may not be used to run server commands; use a dedicated skill'),
+        fails(
+          'chat may not be used to run server commands; use a dedicated skill',
+        ),
       );
     }
     return Promise.resolve(HOLDS);
   },
   run: (ctx, input) =>
     guarded(ctx, async (elapsed) => {
-      const interrupted = interruptCheck<SendChatOutput>(ctx, elapsed, 'before speaking');
+      const interrupted = interruptCheck<SendChatOutput>(
+        ctx,
+        elapsed,
+        'before speaking',
+      );
       if (interrupted) return interrupted;
 
       const text = input.message.trim();
@@ -64,6 +71,9 @@ export const sendChat: Skill<SendChatInput, SendChatOutput> = {
           elapsed(),
         );
       }
-      return succeed({ message: text, private: input.to !== undefined }, elapsed());
+      return succeed(
+        { message: text, private: input.to !== undefined },
+        elapsed(),
+      );
     }),
 };

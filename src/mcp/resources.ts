@@ -194,7 +194,9 @@ export function surroundingsResource(
   };
 }
 
-export function perceptionResource(deps: ResourceDeps): Record<string, unknown> {
+export function perceptionResource(
+  deps: ResourceDeps,
+): Record<string, unknown> {
   const profile = profileOf(deps);
   const report = deps.world.report();
   return {

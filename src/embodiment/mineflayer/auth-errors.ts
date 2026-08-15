@@ -13,15 +13,11 @@
  */
 
 export type XstsErrorCode =
-  | 2148916227
-  | 2148916233
-  | 2148916235
-  | 2148916236
-  | 2148916237
-  | 2148916238;
+  2148916227 | 2148916233 | 2148916235 | 2148916236 | 2148916237 | 2148916238;
 
 export const XSTS_GUIDANCE: Readonly<Record<number, string>> = {
-  2148916227: 'this Xbox account has been banned for a terms-of-service violation',
+  2148916227:
+    'this Xbox account has been banned for a terms-of-service violation',
   2148916233:
     'no Xbox account exists for this Microsoft account; create one once at xbox.com, then sign in again',
   2148916235: 'Xbox Live is not available in this account’s region',
@@ -84,7 +80,9 @@ export function toAuthError(error: unknown): MinecraftAuthError | undefined {
   }
 
   const text = error instanceof Error ? error.message : String(error);
-  if (/invalid[_ ]?(session|token)|unauthori[sz]ed|401|authentication/i.test(text)) {
+  if (
+    /invalid[_ ]?(session|token)|unauthori[sz]ed|401|authentication/i.test(text)
+  ) {
     return new MinecraftAuthError(
       undefined,
       'the account could not be authenticated; check the credentials or re-run the device-code flow',

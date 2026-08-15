@@ -169,7 +169,9 @@ describe('a suite mixing possible and impossible tasks', () => {
   );
 
   /** Refuses absolutely everything, to prove refusal is not free. */
-  const alwaysRefuse = manifest.tasks.map((t) => scoreOutcome(t, outcome('refused')));
+  const alwaysRefuse = manifest.tasks.map((t) =>
+    scoreOutcome(t, outcome('refused')),
+  );
 
   it('scores an always-attempt agent below a discriminating one', () => {
     const attempt = scoreSuite(alwaysAttempt);

@@ -30,11 +30,21 @@ const CANDIDATE_OVERSAMPLE = 4;
 const DEFAULT_FIND_LIMIT = 64;
 
 /** The eight points a heard bearing is rounded to, clockwise from north. */
-export const COMPASS_POINTS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
+export const COMPASS_POINTS = [
+  'N',
+  'NE',
+  'E',
+  'SE',
+  'S',
+  'SW',
+  'W',
+  'NW',
+] as const;
 
 export type CompassPoint = (typeof COMPASS_POINTS)[number];
 
-export type DistanceBand = 'underfoot' | 'close' | 'nearby' | 'distant' | 'faint';
+export type DistanceBand =
+  'underfoot' | 'close' | 'nearby' | 'distant' | 'faint';
 
 /**
  * How loudness is turned into a range of distances rather than a number.
@@ -241,7 +251,10 @@ export class PerceptionAdapter implements WorldView {
     if (limit <= 0) return [];
     const wanted = new Set(options.names);
 
-    const found = new Map<string, { readonly at: number; readonly seen: Observed<BlockInfo> }>();
+    const found = new Map<
+      string,
+      { readonly at: number; readonly seen: Observed<BlockInfo> }
+    >();
 
     const candidates = this.#sensors.findBlocks({
       names: options.names,
@@ -355,7 +368,9 @@ export class PerceptionAdapter implements WorldView {
    */
   testimony(): readonly Observed<Testimony>[] {
     const drained = this.#sensors.drainChat?.() ?? [];
-    return drained.map((message) => this.#gate.sense(unverified(message), 'testimony'));
+    return drained.map((message) =>
+      this.#gate.sense(unverified(message), 'testimony'),
+    );
   }
 
   /**
@@ -399,7 +414,10 @@ export class PerceptionAdapter implements WorldView {
     if (block === undefined) return undefined;
     const eye = this.#eye();
     const centre = blockCentre(position);
-    const seen = this.#gate.sight(block, this.#check(eye, centre, distance(eye, centre)));
+    const seen = this.#gate.sight(
+      block,
+      this.#check(eye, centre, distance(eye, centre)),
+    );
     if (seen === undefined) return undefined;
     this.#memory.remember(seen);
     return seen;

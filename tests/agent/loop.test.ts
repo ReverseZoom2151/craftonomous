@@ -3,27 +3,23 @@ import { GoalStack } from '../../src/agent/goal.js';
 import { AgentLoop, formatTrace } from '../../src/agent/loop.js';
 import type { AgentLoopOptions } from '../../src/agent/loop.js';
 import { AgentMemory } from '../../src/agent/memory.js';
-import type {
-  Decision,
-  Policy,
-  PolicyInput,
-} from '../../src/agent/policy.js';
+import type { Decision, Policy, PolicyInput } from '../../src/agent/policy.js';
 import { RulePolicy, ScriptedPolicy } from '../../src/agent/policy.js';
 import { MemoryLogger } from '../../src/runtime/logger.js';
 import { ManualClock } from '../../src/runtime/clock.js';
 import { FakeInvoker, FakeWorld, block, defaultBody, obs } from './support.js';
 
-function setup(
-  overrides: Partial<AgentLoopOptions> & { policy: Policy },
-): {
+function setup(overrides: Partial<AgentLoopOptions> & { policy: Policy }): {
   loop: AgentLoop;
   world: FakeWorld;
   invoker: FakeInvoker;
   clock: ManualClock;
 } {
   const clock = new ManualClock(1_000);
-  const world = (overrides.world as FakeWorld | undefined) ?? new FakeWorld(clock);
-  const invoker = (overrides.invoker as FakeInvoker | undefined) ?? new FakeInvoker();
+  const world =
+    (overrides.world as FakeWorld | undefined) ?? new FakeWorld(clock);
+  const invoker =
+    (overrides.invoker as FakeInvoker | undefined) ?? new FakeInvoker();
   const loop = new AgentLoop({
     ...overrides,
     world,
@@ -42,7 +38,10 @@ describe('run to completion', () => {
       { kind: 'done', reason: 'goal complete' },
     ]);
     const said: string[] = [];
-    const { loop, invoker } = setup({ policy, speak: (t) => void said.push(t) });
+    const { loop, invoker } = setup({
+      policy,
+      speak: (t) => void said.push(t),
+    });
 
     const trace = await loop.run();
 

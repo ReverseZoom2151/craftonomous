@@ -111,11 +111,11 @@ screenshotted into a slide.
 
 ## Perception profiles
 
-| Profile | Sight | Through walls | Memory | Privileged reads |
-|---|---|---|---|---|
-| `fair-play` | 64 blocks | no | fades after 10 minutes | denied |
-| `xray` | 64 blocks | yes | fades after 10 minutes | denied |
-| `omniscient` | unlimited | yes | never fades | allowed |
+| Profile      | Sight     | Through walls | Memory                 | Privileged reads |
+| ------------ | --------- | ------------- | ---------------------- | ---------------- |
+| `fair-play`  | 64 blocks | no            | fades after 10 minutes | denied           |
+| `xray`       | 64 blocks | yes           | fades after 10 minutes | denied           |
+| `omniscient` | unlimited | yes           | never fades            | allowed          |
 
 `xray` is the interesting one. Same range as fair play, but occlusion is
 switched off, so if an agent scores the same under both then finding things

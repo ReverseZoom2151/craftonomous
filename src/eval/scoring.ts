@@ -192,9 +192,10 @@ export function aggregate(outcomes: readonly ScoredOutcome[]): Aggregate {
 function countByKind(
   outcomes: readonly ScoredOutcome[],
 ): Record<OutcomeKind, number> {
-  const counts = Object.fromEntries(
-    OUTCOME_KINDS.map((k) => [k, 0]),
-  ) as Record<OutcomeKind, number>;
+  const counts = Object.fromEntries(OUTCOME_KINDS.map((k) => [k, 0])) as Record<
+    OutcomeKind,
+    number
+  >;
   for (const o of outcomes) counts[o.kind] += 1;
   return counts;
 }
