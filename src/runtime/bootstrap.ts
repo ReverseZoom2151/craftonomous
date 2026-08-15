@@ -27,6 +27,8 @@ import type { Clock } from './clock.js';
 import { systemClock } from './clock.js';
 import type { Logger } from './logger.js';
 import { silentLogger } from './logger.js';
+import type { PersistenceOptions, SaveOutcome } from './persistence.js';
+import { SessionPersistence } from './persistence.js';
 import type { Session } from './session.js';
 import { DEFAULT_REFLEX_INTERVAL_MS, ReflexSupervisor } from './supervisor.js';
 
@@ -99,6 +101,15 @@ export interface AssembleOptions {
   /** Start the reflex loop immediately. On by default. */
   readonly autoStart?: boolean;
   readonly memoryEntries?: number;
+  /**
+   * Where this session's durable state comes from and goes back to.
+   *
+   * Optional, and absent by default. A session assembled without it is exactly
+   * the session this module built before persistence existed: nothing is read,
+   * nothing is written, and `save` is not offered. Everything persistence adds
+   * is opt-in at the one place that knows the lifecycle.
+   */
+  readonly persistence?: PersistenceOptions;
 }
 
 /** A session over the in-memory fake, with the parts a test wants to poke at. */
@@ -263,7 +274,11 @@ function assemble(
   embodiment: EmbodimentPort,
   profile: PerceptionProfile,
   options: AssembleOptions,
-): { readonly session: Session; readonly supervisor: ReflexSupervisor } {
+): {
+  readonly session: Session;
+  readonly supervisor: ReflexSupervisor;
+  readonly persistence: SessionPersistence | undefined;
+} {
   const clock = options.clock ?? systemClock;
   const log = options.log ?? silentLogger;
 
@@ -314,6 +329,17 @@ function assemble(
     });
   });
 
+  const persistence =
+    options.persistence === undefined
+      ? undefined
+      : new SessionPersistence(
+          memory,
+          reliability,
+          clock,
+          log,
+          options.persistence,
+        );
+
   const session: Session = {
     registry,
     invoker,
@@ -323,15 +349,65 @@ function assemble(
     gate,
     clock,
     reflexes: supervisor,
+    ...(persistence === undefined
+      ? {}
+      : { save: (): Promise<SaveOutcome> => persistence.save('checkpoint') }),
     close: async (): Promise<void> => {
-      unsubscribe?.();
+      // Order is the whole content of this function.
+      //
+      // The autosave timer goes first, so nothing can start a write behind the
+      // shutdown's back. The reflex loop stops next and is allowed to settle,
+      // because a snapshot taken while a reflex is halfway through hauling the
+      // body out of lava describes a position the body is not in and a world
+      // it is not looking at. Only once nothing is moving is the state worth
+      // writing down.
+      //
+      // The save then happens while the lifecycle listener is still attached,
+      // and only afterwards is that listener released. A reconnect notice that
+      // lands during shutdown must still be able to clear world memory before
+      // the capture reads it; unsubscribing first would leave a window in
+      // which a dead session's knowledge was written back to disk as though it
+      // were current. Capture is synchronous, so once it has run the snapshot
+      // is decided and the listener has no further work to do.
+      //
+      // Disconnecting is last. The body is the only thing here that cannot be
+      // consulted after it is gone.
+      persistence?.stopAutosave();
       supervisor.stop();
       await supervisor.settle();
+      await persistence?.save('close');
+      unsubscribe?.();
       await embodiment.disconnect();
     },
   };
 
-  return { session, supervisor };
+  return { session, supervisor, persistence };
+}
+
+/**
+ * Load the snapshot before the session is handed to anyone.
+ *
+ * Restoring after the caller has a session would mean handing back a body that
+ * knows nothing and then filling its memory underneath it, so a caller that
+ * read the world in between would get an answer that was true of no moment.
+ *
+ * A refusal tears the half-built session down through its own `close`, which
+ * releases the lifecycle listener, stops the reflex loop and disconnects the
+ * body. That path cannot overwrite the snapshot it just refused to read:
+ * saving stays disarmed until a restore succeeds.
+ */
+async function restoreBeforeUse(
+  session: Session,
+  persistence: SessionPersistence | undefined,
+): Promise<void> {
+  if (persistence === undefined) return;
+  try {
+    await persistence.restore();
+  } catch (error) {
+    await session.close?.();
+    throw error;
+  }
+  persistence.startAutosave();
 }
 
 /**
@@ -360,7 +436,9 @@ export async function createSession(
     logger: log,
   });
 
-  return assemble(embodiment, profile, options).session;
+  const { session, persistence } = assemble(embodiment, profile, options);
+  await restoreBeforeUse(session, persistence);
+  return session;
 }
 
 /**
@@ -374,8 +452,45 @@ export async function createSession(
 export function createOfflineSession(
   options: OfflineSessionOptions = {},
 ): OfflineSession {
+  if (options.persistence !== undefined) {
+    // Reading a snapshot is asynchronous and this function is not, so there is
+    // no honest way to hand back a restored session from here. Refusing says
+    // so; the alternatives are to return a session whose memory fills in later
+    // (a caller reading the world immediately would see a lie) or to ignore
+    // the store (a caller would believe it had persistence and have none).
+    throw new TypeError(
+      'createOfflineSession cannot restore a snapshot, because loading one is ' +
+        'asynchronous; use openOfflineSession for a session with persistence',
+    );
+  }
+  return buildOffline(options);
+}
+
+/**
+ * The offline session, with its snapshot already loaded.
+ *
+ * Separate from {@link createOfflineSession} rather than replacing it, because
+ * the synchronous constructor is used in dozens of places that have no snapshot
+ * and no reason to become async.
+ */
+export async function openOfflineSession(
+  options: OfflineSessionOptions = {},
+): Promise<OfflineSession> {
+  const { session, persistence } = buildOfflineParts(options);
+  await restoreBeforeUse(session, persistence);
+  return session;
+}
+
+function buildOffline(options: OfflineSessionOptions): OfflineSession {
+  return buildOfflineParts(options).session;
+}
+
+function buildOfflineParts(options: OfflineSessionOptions): {
+  readonly session: OfflineSession;
+  readonly persistence: SessionPersistence | undefined;
+} {
   const profile = options.profile ?? BUILTIN_PROFILES.FAIR_PLAY;
   const body = createFakeEmbodiment(options.world ?? new FakeWorld());
-  const { session, supervisor } = assemble(body, profile, options);
-  return { ...session, reflexes: supervisor, body };
+  const { session, supervisor, persistence } = assemble(body, profile, options);
+  return { session: { ...session, reflexes: supervisor, body }, persistence };
 }

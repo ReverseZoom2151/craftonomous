@@ -5,6 +5,7 @@ import type { WorldView } from '../perception/world-view.js';
 import type { SkillRegistry } from '../skills/registry.js';
 import type { ReliabilityTracker } from '../skills/reliability.js';
 import type { Clock } from './clock.js';
+import type { SaveOutcome } from './persistence.js';
 import type { ReflexSupervisor } from './supervisor.js';
 
 /**
@@ -43,5 +44,15 @@ export interface Session {
    * member would make that impossible to express.
    */
   readonly reflexes?: ReflexSupervisor;
+  /**
+   * Write a snapshot now, without ending the session.
+   *
+   * Present only when the session was assembled with a snapshot store, so its
+   * absence is the honest answer to "can this session checkpoint" rather than
+   * a call that silently does nothing. It resolves to an outcome rather than
+   * rejecting: a checkpoint that could not be written is worth reporting, and
+   * is never worth ending a healthy run over.
+   */
+  save?(): Promise<SaveOutcome>;
   close?(): Promise<void>;
 }

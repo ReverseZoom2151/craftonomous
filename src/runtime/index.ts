@@ -10,5 +10,6 @@ export { ManualClock, systemClock } from './clock.js';
 export type { Logger, LogLevel, LogRecord } from './logger.js';
 export { MemoryLogger, silentLogger } from './logger.js';
 export type { Session } from './session.js';
+export * from './persistence.js';
 export * from './supervisor.js';
 export * from './bootstrap.js';
