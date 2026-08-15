@@ -35,7 +35,14 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "smoke": "node scripts/smoke.mjs",
+    "smoke:build": "npm run build && node scripts/smoke.mjs",
+    "test:live": "vitest run --config tests/live/vitest.config.ts",
+    "mc:up": "docker compose -f docker/docker-compose.yml up -d",
+    "mc:down": "docker compose -f docker/docker-compose.yml down",
+    "mc:reset": "docker compose -f docker/docker-compose.yml down -v",
+    "mc:logs": "docker compose -f docker/docker-compose.yml logs -f minecraft"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",

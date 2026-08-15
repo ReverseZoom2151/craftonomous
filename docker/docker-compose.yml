@@ -1,0 +1,127 @@
+# A pinned, disposable Minecraft server for live testing.
+#
+# This exists so the connect / sense / act loop can be exercised against a real
+# world without touching a real account. Everything here is chosen for
+# repeatability: the same compose file next month brings up the same server
+# running the same Minecraft version generating the same world.
+#
+#   docker compose -f docker/docker-compose.yml up -d
+#   docker compose -f docker/docker-compose.yml down -v
+#
+# Read docs/LIVE_TESTING.md before pointing anything at this. In particular:
+# the server is OFFLINE MODE on purpose, so no Microsoft account and no session
+# join is involved, and Mojang's join rate limit cannot be tripped by anything
+# that talks to it.
+
+services:
+  minecraft:
+    # Pinned to an exact release tag, never `latest` and never the rolling
+    # `java21` tag, both of which are rebuilt in place and would silently change
+    # the server under a test run.
+    #
+    # itzg/minecraft-server:2026.8.0-java21
+    #   digest sha256:b76b9298a2a60d5cf9d223e009cd0b8ad620c2080abd83f9a1fa5084fa87f9ab
+    #
+    # To upgrade, bump this tag deliberately and re-run the smoke test, because
+    # a new image can also mean a new default Minecraft version.
+    image: itzg/minecraft-server:2026.8.0-java21
+    container_name: craftonomous-mc
+    tty: true
+    stdin_open: true
+    restart: "no"
+
+    ports:
+      # Host port is overridable so a machine already running a server on 25565
+      # can put the test server somewhere else without editing this file:
+      #   MINECRAFT_PORT=25566 docker compose -f docker/docker-compose.yml up -d
+      # The container side stays 25565; only the host side moves.
+      - "${MINECRAFT_PORT:-25565}:25565"
+
+    environment:
+      # Accepting the Minecraft EULA is a legal precondition for running the
+      # server at all. The image refuses to start without it.
+      EULA: "TRUE"
+
+      # The Minecraft version. This is the single most important pin in the
+      # file: mineflayer speaks a fixed set of protocol versions, and an
+      # unpinned server would drift ahead of the client on some future Tuesday
+      # and produce a protocol error that looks like a bug in our code.
+      # mineflayer 4.37 supports 1.8 through 1.21.11; 1.21.4 sits inside that
+      # range and has data in the bundled minecraft-data.
+      VERSION: "1.21.4"
+      TYPE: "VANILLA"
+
+      # No Mojang session check on join. This is the whole point of the harness:
+      # the bot connects with `auth: offline` and a made-up username, so no real
+      # account, no session server, and no exposure to the six-joins-per-thirty
+      # -seconds limit. Never flip this to true for automated testing.
+      ONLINE_MODE: "FALSE"
+
+      # A fixed seed makes world generation deterministic, so the terrain around
+      # spawn is the same on every machine and a test that depends on what is
+      # underfoot is reproducible rather than lucky.
+      SEED: "8675309"
+      LEVEL: "craftonomous-test"
+      LEVEL_TYPE: "minecraft:normal"
+
+      # Peaceful means no hostile spawns, so a bot that stands still while a
+      # test asserts something does not get shot by a skeleton halfway through.
+      # Raise this only for a test that is deliberately about combat.
+      DIFFICULTY: "peaceful"
+      MODE: "survival"
+      PVP: "FALSE"
+
+      # Anyone may join. A whitelist would reject the offline-mode bot username
+      # and produce a kick that reads like a connection failure.
+      ENABLE_WHITELIST: "FALSE"
+      # Spawn protection would refuse the bot's first dig near spawn and make a
+      # placement test fail for reasons unrelated to the placement.
+      SPAWN_PROTECTION: "0"
+      MAX_PLAYERS: "4"
+
+      # Small view and simulation distances. The server sends fewer chunks, so
+      # startup and every join are faster, and the test still gets far more
+      # loaded blocks than the fair-play sight range of 64 uses.
+      VIEW_DISTANCE: "6"
+      SIMULATION_DISTANCE: "6"
+
+      # Deterministic light and weather: a test that reasons about light level
+      # or about being outdoors should not depend on the in-game clock or on
+      # whether it happens to be raining.
+      # (These are applied to the world on first generation by the image.)
+      SPAWN_ANIMALS: "TRUE"
+      SPAWN_NPCS: "FALSE"
+      ANNOUNCE_PLAYER_ACHIEVEMENTS: "FALSE"
+
+      # RCON is off. Nothing in the harness needs a remote console, and the
+      # image's default RCON password is well known. Turn it on locally if you
+      # want to poke the world by hand; see docs/LIVE_TESTING.md.
+      ENABLE_RCON: "FALSE"
+
+      # A modest fixed heap. Enough for a small world, small enough to run
+      # alongside a test suite on a laptop.
+      MEMORY: "2G"
+      # Rewrite server.properties from these variables on every start, so
+      # editing this file is enough and a stale world config cannot win.
+      OVERRIDE_SERVER_PROPERTIES: "TRUE"
+
+    # Readiness, so scripts can wait for a fact instead of sleeping and hoping.
+    # `mc-health` ships with the image and performs a real server list ping, so
+    # it reports healthy only once the server is actually accepting connections.
+    # The first start generates a world, hence the long start_period; during
+    # that window failures do not count against `retries`.
+    healthcheck:
+      test: ["CMD", "mc-health"]
+      start_period: 180s
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+    volumes:
+      # Named volume, so `docker compose down -v` throws the world away and the
+      # next `up` regenerates it from SEED. That is the reset button when a test
+      # has dug a hole through the thing the next test was going to measure.
+      - craftonomous-mc-data:/data
+
+volumes:
+  craftonomous-mc-data:
