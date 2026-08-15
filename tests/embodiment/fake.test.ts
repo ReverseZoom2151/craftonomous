@@ -12,10 +12,17 @@ import { distance } from '../../src/embodiment/geometry.js';
 
 const EYE = { x: 0.5, y: 65.5, z: 0.5 };
 
-/** A body standing at the origin with a stone wall at x = 3. */
+/**
+ * A body standing at the origin with a stone wall at x = 3.
+ *
+ * The floor at y = 63 is load-bearing now that the fake body walks rather than
+ * teleports: a body with nothing under its feet is not standing anywhere a
+ * route can start from, which is exactly what a real server would say.
+ */
 function walledWorld(): FakeWorld {
   const world = new FakeWorld();
   world.setBody({ position: { x: 0.5, y: 64, z: 0.5 }, eyePosition: EYE });
+  world.fill({ x: -8, y: 63, z: -8 }, { x: 12, y: 63, z: 12 }, 'stone');
   world.fill({ x: 3, y: 60, z: -5 }, { x: 3, y: 70, z: 5 }, 'stone');
   world.setBlock({ x: 6, y: 65, z: 0 }, 'iron_ore');
   return world;
@@ -197,7 +204,7 @@ describe('FakeActuatorPort', () => {
     );
   });
 
-  it('teleports the body on moveTo and stops short when given a range', async () => {
+  it('walks the body on moveTo and stops short when given a range', async () => {
     await embodiment.actuators.moveTo({ x: 0.5, y: 64, z: 10.5 });
     expect(world.body().position).toEqual({ x: 0.5, y: 64, z: 10.5 });
     expect(world.body().eyePosition.y).toBeCloseTo(65.62);

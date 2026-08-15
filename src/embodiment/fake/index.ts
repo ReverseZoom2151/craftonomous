@@ -6,6 +6,15 @@ export {
   createFakeEmbodiment,
 } from './ports.js';
 
+export type { PathFailure, PathLimits, PathResult } from './pathfinding.js';
+export {
+  DEFAULT_LIMITS,
+  hasRoomToStand,
+  isStandable,
+  planPath,
+  standingPosition,
+} from './pathfinding.js';
+
 export type { BlockOptions, FakeRecipe } from './world.js';
 export {
   AIR,
