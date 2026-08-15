@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { ManualClock } from '../../src/runtime/clock.js';
 import {
+  DEFAULT_MIN_CONTEXT_ATTEMPTS,
+  DEFAULT_MIN_EVENTS,
   DEFAULT_RETIREMENT,
   ReliabilityTracker,
   wilsonLowerBound,
@@ -7,6 +10,9 @@ import {
 
 const ok = { succeeded: true, durationMs: 100 } as const;
 const bad = { succeeded: false, durationMs: 300 } as const;
+
+const HOUR = 60 * 60 * 1000;
+const DAY = 24 * HOUR;
 
 describe('wilsonLowerBound', () => {
   it('is zero with no evidence', () => {
@@ -155,5 +161,163 @@ describe('ranking', () => {
     t.record('mine', ok);
     t.reset();
     expect(t.ranked()).toHaveLength(0);
+  });
+});
+
+describe('recency', () => {
+  it('does not let last month\'s successes prop up today\'s failures', () => {
+    // The scenario the window exists for: a server update broke the skill this
+    // morning, and its lifetime record is glowing.
+    const clock = new ManualClock(0);
+    const t = new ReliabilityTracker(DEFAULT_RETIREMENT, { clock });
+    for (let i = 0; i < 50; i += 1) t.record('mine', ok);
+    expect(t.isRetired('mine')).toBe(false);
+
+    clock.advance(30 * DAY);
+    for (let i = 0; i < 10; i += 1) t.record('mine', bad);
+
+    const s = t.stats('mine');
+    expect(s.attempts).toBe(10);
+    expect(s.successes).toBe(0);
+    expect(s.confidence).toBe(0);
+    expect(t.isRetired('mine')).toBe(true);
+  });
+
+  it('keeps a floor of older evidence when there is little recent evidence', () => {
+    const clock = new ManualClock(0);
+    const t = new ReliabilityTracker(DEFAULT_RETIREMENT, { clock });
+    for (let i = 0; i < 50; i += 1) t.record('mine', ok);
+    clock.advance(30 * DAY);
+    t.record('mine', bad);
+
+    // One fresh failure cannot be judged on its own, so the floor keeps the
+    // most recent older attempts for company rather than reporting a rate of
+    // zero over a single data point.
+    const s = t.stats('mine');
+    expect(s.attempts).toBe(DEFAULT_MIN_EVENTS);
+    expect(s.successes).toBe(DEFAULT_MIN_EVENTS - 1);
+    expect(t.isRetired('mine')).toBe(false);
+  });
+
+  it('discards evidence older than the window once newer evidence exists', () => {
+    const clock = new ManualClock(0);
+    const t = new ReliabilityTracker(DEFAULT_RETIREMENT, {
+      clock,
+      windowMs: 2 * HOUR,
+      minEvents: 1,
+    });
+    for (let i = 0; i < 5; i += 1) t.record('mine', ok);
+    clock.advance(3 * HOUR);
+    t.record('mine', bad);
+
+    expect(t.stats('mine').attempts).toBe(1);
+    expect(t.stats('mine').successes).toBe(0);
+  });
+
+  it('still reports what was last learned about a skill nobody has tried lately', () => {
+    // The window is anchored on the newest attempt, not on the wall clock:
+    // idleness is not evidence of breakage, and reporting nothing would rank a
+    // proven skill alongside an untested one.
+    const clock = new ManualClock(0);
+    const t = new ReliabilityTracker(DEFAULT_RETIREMENT, { clock });
+    for (let i = 0; i < 20; i += 1) t.record('mine', ok);
+    clock.advance(30 * DAY);
+
+    expect(t.stats('mine').attempts).toBe(20);
+    expect(t.isRetired('mine')).toBe(false);
+  });
+
+  it('bounds memory by discarding the oldest attempts', () => {
+    const t = new ReliabilityTracker(DEFAULT_RETIREMENT, { maxEvents: 4 });
+    for (let i = 0; i < 6; i += 1) t.record('mine', ok);
+    expect(t.stats('mine').attempts).toBe(4);
+  });
+});
+
+describe('per-context conditioning', () => {
+  it('separates a place where a skill works from one where it does not', () => {
+    const t = new ReliabilityTracker();
+    for (let i = 0; i < 10; i += 1) t.record('mine', ok, 'plains');
+    for (let i = 0; i < 10; i += 1) t.record('mine', bad, 'ravine');
+
+    expect(t.stats('mine').attempts).toBe(20);
+    expect(t.stats('mine').rate).toBe(0.5);
+    expect(t.stats('mine', 'plains').rate).toBe(1);
+    expect(t.stats('mine', 'ravine').rate).toBe(0);
+  });
+
+  it('falls back to the overall record when a context is thin', () => {
+    const t = new ReliabilityTracker();
+    for (let i = 0; i < 20; i += 1) t.record('mine', ok, 'plains');
+    t.record('mine', bad, 'ravine');
+
+    const scoped = t.contextStats('mine', 'ravine');
+    expect(scoped.fallback).toBe(true);
+    expect(scoped.contextAttempts).toBe(1);
+    expect(scoped.attempts).toBe(21);
+    expect(scoped.confidence).toBe(t.stats('mine').confidence);
+  });
+
+  it('treats a context it has never seen as thin', () => {
+    const t = new ReliabilityTracker();
+    for (let i = 0; i < 10; i += 1) t.record('mine', ok);
+
+    const scoped = t.contextStats('mine', 'nether');
+    expect(scoped.fallback).toBe(true);
+    expect(scoped.contextAttempts).toBe(0);
+    expect(scoped.attempts).toBe(10);
+  });
+
+  it('trusts a context once it has evidence of its own', () => {
+    const t = new ReliabilityTracker();
+    for (let i = 0; i < 20; i += 1) t.record('mine', ok, 'plains');
+    for (let i = 0; i < DEFAULT_MIN_CONTEXT_ATTEMPTS; i += 1) {
+      t.record('mine', bad, 'ravine');
+    }
+
+    const scoped = t.contextStats('mine', 'ravine');
+    expect(scoped.fallback).toBe(false);
+    expect(scoped.attempts).toBe(DEFAULT_MIN_CONTEXT_ATTEMPTS);
+    expect(scoped.confidence).toBe(0);
+  });
+
+  it('honours a custom evidence threshold for conditioning', () => {
+    const t = new ReliabilityTracker(DEFAULT_RETIREMENT, {
+      minContextAttempts: 2,
+    });
+    for (let i = 0; i < 20; i += 1) t.record('mine', ok, 'plains');
+    t.record('mine', bad, 'ravine');
+    t.record('mine', bad, 'ravine');
+
+    expect(t.contextStats('mine', 'ravine').fallback).toBe(false);
+    expect(t.stats('mine', 'ravine').rate).toBe(0);
+  });
+
+  it('retires a skill where it is broken without retiring it everywhere', () => {
+    const t = new ReliabilityTracker();
+    for (let i = 0; i < 40; i += 1) t.record('mine', ok, 'plains');
+    for (let i = 0; i < 10; i += 1) t.record('mine', bad, 'ravine');
+
+    expect(t.isRetired('mine')).toBe(false);
+    expect(t.isRetired('mine', 'plains')).toBe(false);
+    expect(t.isRetired('mine', 'ravine')).toBe(true);
+  });
+
+  it('lists the contexts it has evidence under', () => {
+    const t = new ReliabilityTracker();
+    t.record('mine', ok, 'plains');
+    t.record('mine', bad, 'ravine');
+    t.record('mine', ok);
+
+    expect(t.contexts('mine')).toEqual(['plains', 'ravine']);
+    expect(t.contexts('never-run')).toEqual([]);
+  });
+
+  it('still accepts a bare two-argument record, as the runner calls it', () => {
+    const t = new ReliabilityTracker();
+    t.record('mine', ok);
+    t.record('mine', bad);
+    expect(t.stats('mine').attempts).toBe(2);
+    expect(t.contexts('mine')).toEqual([]);
   });
 });
