@@ -13,9 +13,13 @@
   },
   "exports": {
     ".": "./dist/index.js",
-    "./perception": "./dist/perception/index.js",
-    "./skills": "./dist/skills/index.js",
-    "./mcp": "./dist/mcp/index.js"
+    "./agent": "./dist/agent/index.js",
+    "./embodiment": "./dist/embodiment/index.js",
+    "./eval": "./dist/eval/index.js",
+    "./mcp": "./dist/mcp/index.js",
+    "./planning": "./dist/planning/index.js",
+    "./sandbox": "./dist/sandbox/index.js",
+    "./skills": "./dist/skills/library/index.js"
   },
   "bin": {
     "craftonomous": "./dist/cli/main.js"
