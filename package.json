@@ -35,13 +35,14 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "minecraft-data": "^3.108.0",
     "mineflayer": "^4.37.0",
     "mineflayer-pathfinder": "^2.4.5",
-    "minecraft-data": "^3.108.0",
     "prismarine-block": "^1.21.0",
     "prismarine-entity": "^2.5.0",
     "vec3": "^0.1.10",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
