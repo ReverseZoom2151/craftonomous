@@ -11,6 +11,7 @@
  */
 
 import { defineManifest, defineTask } from '../task.js';
+import { ITEM_TAGS } from '../goal-check.js';
 import type { Task, TaskManifest } from '../task.js';
 
 const SUITE_VERSION = '1.0.0';
@@ -31,6 +32,7 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['gathering', 'wood', 'smoke'],
     difficulty: 'trivial',
     goal: 'inventory contains at least 1 item tagged minecraft:logs',
+    goalPredicate: { kind: 'item-tag-count', tag: 'logs', items: ITEM_TAGS['logs'] ?? [], count: 1 },
     budget: { maxSteps: 40, maxDurationMs: minutes(3) },
   }),
   task({
@@ -43,6 +45,7 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['gathering', 'wood'],
     difficulty: 'easy',
     goal: 'inventory contains at least 8 items tagged minecraft:logs',
+    goalPredicate: { kind: 'item-tag-count', tag: 'logs', items: ITEM_TAGS['logs'] ?? [], count: 8 },
     budget: { maxSteps: 120, maxDurationMs: minutes(6) },
   }),
   task({
@@ -55,6 +58,7 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['crafting', 'wood'],
     difficulty: 'easy',
     goal: 'inventory contains at least 4 items tagged minecraft:planks',
+    goalPredicate: { kind: 'item-tag-count', tag: 'planks', items: ITEM_TAGS['planks'] ?? [], count: 4 },
     budget: { maxSteps: 60, maxDurationMs: minutes(4) },
   }),
   task({
@@ -67,6 +71,7 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['crafting', 'wood', 'chaining'],
     difficulty: 'easy',
     goal: 'inventory contains at least 4 minecraft:stick',
+    goalPredicate: { kind: 'item-count', item: 'stick', count: 4 },
     budget: { maxSteps: 80, maxDurationMs: minutes(5) },
   }),
   task({
@@ -79,6 +84,7 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['crafting', 'placement'],
     difficulty: 'easy',
     goal: 'a minecraft:crafting_table block exists within 4 blocks of the agent',
+    goalPredicate: { kind: 'block-nearby', block: 'crafting_table', radius: 4 },
     budget: { maxSteps: 100, maxDurationMs: minutes(5) },
   }),
   task({
@@ -91,6 +97,7 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['crafting', 'tools', 'chaining'],
     difficulty: 'moderate',
     goal: 'inventory contains at least 1 minecraft:wooden_pickaxe',
+    goalPredicate: { kind: 'item-count', item: 'wooden_pickaxe', count: 1 },
     budget: { maxSteps: 200, maxDurationMs: minutes(8) },
   }),
   task({
@@ -103,6 +110,7 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['gathering', 'stone', 'tools'],
     difficulty: 'moderate',
     goal: 'inventory contains at least 3 minecraft:cobblestone',
+    goalPredicate: { kind: 'item-count', item: 'cobblestone', count: 3 },
     budget: { maxSteps: 220, maxDurationMs: minutes(10) },
   }),
   task({
@@ -115,6 +123,7 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['crafting', 'tools', 'chaining', 'headline'],
     difficulty: 'hard',
     goal: 'inventory contains at least 1 minecraft:stone_pickaxe',
+    goalPredicate: { kind: 'item-count', item: 'stone_pickaxe', count: 1 },
     budget: { maxSteps: 320, maxDurationMs: minutes(12) },
   }),
   task({
@@ -127,6 +136,7 @@ export const GATHERING_TASKS: readonly Task[] = [
     tags: ['crafting', 'stone'],
     difficulty: 'hard',
     goal: 'inventory contains at least 1 minecraft:furnace',
+    goalPredicate: { kind: 'item-count', item: 'furnace', count: 1 },
     budget: { maxSteps: 360, maxDurationMs: minutes(12) },
   }),
 ];

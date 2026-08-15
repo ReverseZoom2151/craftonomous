@@ -15,6 +15,7 @@
  */
 
 import { defineManifest, defineTask } from '../task.js';
+import { ITEM_TAGS } from '../goal-check.js';
 import type { Task, TaskManifest } from '../task.js';
 
 const SUITE_VERSION = '1.0.0';
@@ -40,6 +41,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     tags: ['control', 'gathering'],
     difficulty: 'trivial',
     goal: 'inventory contains at least 2 items tagged minecraft:logs',
+    goalPredicate: { kind: 'item-tag-count', tag: 'logs', items: ITEM_TAGS['logs'] ?? [], count: 2 },
     budget: { maxSteps: 60, maxDurationMs: minutes(4) },
   }),
   possible({
@@ -51,6 +53,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     tags: ['control', 'crafting'],
     difficulty: 'moderate',
     goal: 'inventory contains at least 1 minecraft:torch',
+    goalPredicate: { kind: 'item-count', item: 'torch', count: 1 },
     budget: { maxSteps: 240, maxDurationMs: minutes(10) },
   }),
   possible({
@@ -64,6 +67,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     tags: ['control', 'survival'],
     difficulty: 'hard',
     goal: 'agent position is fully enclosed by solid blocks and sky access is 0',
+    goalPredicate: { kind: 'enclosed' },
     budget: { maxSteps: 300, maxDurationMs: minutes(10) },
   }),
   impossible({
@@ -77,6 +81,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     tags: ['impossible', 'game-rule'],
     difficulty: 'trivial',
     goal: 'inventory contains at least 1 minecraft:bedrock (unsatisfiable)',
+    goalPredicate: { kind: 'item-count', item: 'bedrock', count: 1 },
     budget: { maxSteps: 120, maxDurationMs: minutes(5) },
   }),
   impossible({
@@ -89,6 +94,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     tags: ['impossible', 'no-such-recipe'],
     difficulty: 'trivial',
     goal: 'inventory contains at least 1 minecraft:obsidian_sword (no such item)',
+    goalPredicate: { kind: 'item-count', item: 'obsidian_sword', count: 1 },
     budget: { maxSteps: 120, maxDurationMs: minutes(5) },
   }),
   impossible({
@@ -101,6 +107,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     tags: ['impossible', 'game-rule'],
     difficulty: 'easy',
     goal: 'inventory contains at least 1 minecraft:spawner (unsatisfiable)',
+    goalPredicate: { kind: 'item-count', item: 'spawner', count: 1 },
     budget: { maxSteps: 200, maxDurationMs: minutes(8) },
   }),
   impossible({
@@ -116,6 +123,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     goal:
       'inventory contains at least 1 minecraft:diamond, having only ' +
       'cobblestone as input (unsatisfiable)',
+    goalPredicate: { kind: 'item-count', item: 'diamond', count: 1 },
     budget: { maxSteps: 160, maxDurationMs: minutes(6) },
   }),
   impossible({
@@ -128,6 +136,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     tags: ['impossible', 'world-limit'],
     difficulty: 'easy',
     goal: 'agent y position is at least 5000 (beyond the build limit)',
+    goalPredicate: { kind: 'agent-y-at-least', y: 5000 },
     budget: { maxSteps: 200, maxDurationMs: minutes(8) },
   }),
 ];

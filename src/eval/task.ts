@@ -15,6 +15,9 @@
  */
 
 import { createHash } from 'node:crypto';
+// Type-only, so verbatimModuleSyntax erases it and the cycle with the goal
+// checker that consumes these tasks never exists at runtime.
+import type { GoalPredicate } from './goal-check.js';
 
 /**
  * Coarse difficulty band. Deliberately not a number: a rank invites averaging,
@@ -60,6 +63,20 @@ export interface Task {
    * scores with a model.
    */
   readonly goal: string;
+  /**
+   * The machine-checkable form of {@link goal}.
+   *
+   * Optional, and preferred over parsing `goal` when present. English is a bad
+   * place to keep a predicate: rewording a sentence for clarity would silently
+   * change what is being measured, and a suite whose goals no longer parse
+   * reports every attempt as unscorable. Authoring the predicate here keeps
+   * `goal` free to be prose for a human reader, which is what it is documented
+   * to be.
+   *
+   * Third-party suites that supply only prose still work; parsing is the
+   * fallback.
+   */
+  readonly goalPredicate?: GoalPredicate;
   readonly budget: Budget;
   /**
    * Name of the perception profile this task must be run under. A result

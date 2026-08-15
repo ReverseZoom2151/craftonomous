@@ -443,8 +443,15 @@ export function predicateFor(
   task: Task,
   overrides?: GoalPredicateOverrides,
 ): GoalParse {
+  // Order matters. A caller-supplied override wins, because it is the most
+  // specific statement of intent. An authored predicate on the task comes
+  // next. Parsing the prose is the fallback, since a reworded sentence must
+  // not be able to change what a suite measures.
   const override = overrides?.[task.id];
   if (override !== undefined) return { ok: true, predicate: override };
+  if (task.goalPredicate !== undefined) {
+    return { ok: true, predicate: task.goalPredicate };
+  }
   return parseGoal(task.goal);
 }
 
