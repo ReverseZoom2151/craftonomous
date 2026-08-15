@@ -152,22 +152,34 @@ silently degrading the agent that depends on it.
 
 ## Where it stands
 
-The substrate is built and tested, all of it offline: 743 tests covering
-perception, skills, the MCP surface, evaluation, the reference agent and the
-planning layer.
+The substrate is assembled and tested, all of it offline, at 949 tests. A
+single call builds the whole stack over a live body or over an in-memory fake,
+which is what lets the fake carry most of the suite.
 
 What has not happened is a live game. The mineflayer binding typechecks and
-its testable parts are covered, but nothing has connected to a real server and
-played, so there are no baselines and no results worth quoting. That is the
-next thing.
+its testable parts are covered, and there is a pinned server and a smoke test
+waiting for it (see [live testing](docs/LIVE_TESTING.md)), but nothing has
+connected to a real world and played. So there are no baselines and no numbers
+worth quoting. That is the next thing, and it will find bugs.
 
-A few known gaps, all tracked in the [roadmap](docs/ROADMAP.md). The offline
-world teleports instead of pathfinding, so it will not catch a skill that
-assumes it can walk somewhere unreachable. Skill reliability has no sense of
-recency, so a skill broken by yesterday's server update is still propped up by
-last month's successes. An agent that lies in chat is currently believed. And
-there is no exploration skill, so the rule policy has nothing to do when its
-target is out of sight.
+Three known gaps are worth stating plainly, and the rest are in the
+[roadmap](docs/ROADMAP.md).
+
+Reconnection is written but inactive. `SessionSupervisor` handles death,
+respawn and dropped sockets, and `connect()` does not build one, because the
+sensor and actuator ports hold the bot they were constructed with and cannot
+rebind. A supervisor that swapped its bot would leave those ports talking to a
+dead socket while reporting a successful recovery, which is worse than not
+reconnecting at all. Rebinding the ports is the prerequisite.
+
+Testimony establishes opportunity, not truth. The agent can check whether it
+ever saw a speaker near the place they are talking about. A player standing on
+diamonds can still lie, and nothing here will catch that.
+
+The offline world teleports instead of pathfinding, so it will not catch a
+skill that assumes it can walk somewhere unreachable. Three shipped goals need
+positions the symbolic sandbox does not model, and report themselves as
+unscorable there rather than as failures.
 
 ## Scope
 
@@ -184,6 +196,7 @@ from them, and that corpus is kept out of the build and the test runner.
 - [Architecture](docs/ARCHITECTURE.md)
 - [Perception and fair play](docs/PERCEPTION.md)
 - [Skill reliability](docs/SKILL_RELIABILITY.md)
+- [Live testing](docs/LIVE_TESTING.md), including the rate limits to respect
 - [Prior art survey](docs/PRIOR_ART.md), covering all 52 projects
 - [Roadmap](docs/ROADMAP.md)
 
