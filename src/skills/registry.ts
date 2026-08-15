@@ -1,8 +1,8 @@
 import type { AnySkill, Skill } from './types.js';
 
 export class DuplicateSkill extends Error {
-  constructor(readonly name: string) {
-    super(`a skill named "${name}" is already registered`);
+  constructor(readonly skillName: string) {
+    super(`a skill named "${skillName}" is already registered`);
     this.name = 'DuplicateSkill';
   }
 }
