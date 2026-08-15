@@ -72,7 +72,7 @@ export const depositItems: Skill<ContainerSkillInput, ContainerSkillOutput> = {
   summary: 'Put items from the inventory into a chest or other container.',
   description: [
     'Walks to a known container, opens it, moves each requested item in, and',
-    'closes it again — the close happens even when a transfer fails, because a',
+    'closes it again. The close happens even when a transfer fails, because a',
     'container left open blocks every later interaction.',
     'The container must have been sensed: an unknown coordinate fails the',
     'precondition rather than sending the body somewhere on a guess. A block',
@@ -178,7 +178,7 @@ export const withdrawItems: Skill<ContainerSkillInput, ContainerSkillOutput> = {
     'asked for fails `precondition`.',
     'The container itself must have been sensed; an unknown coordinate fails',
     'the precondition rather than being treated as an empty chest.',
-    'Do not use this to check what a chest holds without taking anything —',
+    'Do not use this to check what a chest holds without taking anything;',
     'read the open-container view instead.',
   ].join(' '),
   input: containerInput,

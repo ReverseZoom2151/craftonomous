@@ -5,8 +5,8 @@ any code was written here. Craftonomous is clean-room: these were read for ideas
 and are cited; no code was copied from them.
 
 License notes are recorded from the repository snapshots surveyed. Several
-projects display a license *badge* pointing at a dependency's license — most
-often MineCLIP's MIT — while shipping no license of their own. A badge does not
+projects display a license *badge* pointing at a dependency's license, most
+often MineCLIP's MIT, while shipping no license of their own. A badge does not
 license the code beneath it. Where no `LICENSE` file was found, the code is
 treated as all-rights-reserved and was not used as a source at all.
 
@@ -32,7 +32,7 @@ propagates. It is the main reason Craftonomous builds on mineflayer.
 | mineflayer | PrismarineJS | Protocol client, ~35-plugin API, MC 1.8–1.21.11 | MIT |
 | MineDojo | NeurIPS 2022 (Outstanding Paper) | Malmo sim, 1000+ task YAMLs, internet-scale KB | MIT (wiki data CC BY-NC-SA) |
 | minerl | MineRL / BASALT | Gym env underlying VPT | **CC BY-NC-SA 4.0** |
-| MineStudio | arXiv 2412.18293 | Data, models, training, 153 eval tasks | MIT (vendors minerl — conflict) |
+| MineStudio | arXiv 2412.18293 | Data, models, training, 153 eval tasks | MIT (vendors minerl, a conflict) |
 | Vereya | trueagi-io | Fabric mod, **MC 1.21**, Malmo-style typed API | none found |
 | craftium | ICML 2025 | Luanti engine, not Minecraft; `sync_mode` for slow agents | LGPL + mixed assets |
 | marLo | MarLÖ 2018 | Malmo Gym wrapper, ~25 task XMLs | MIT (unmaintained) |
@@ -73,7 +73,7 @@ propagates. It is the main reason Craftonomous builds on mineflayer.
 | XENON | ICLR 2026 | **Experience-corrected recipe graph** against real Minecraft | none found |
 | WALL-E | NeurIPS 2025 | Rule mining: propose → refine → prune by max-coverage. **Environment is 2D Crafter, not Minecraft** | Mars subdir only |
 | MP5 | CVPR 2024 | Active-perception prompt library; Chroma workflow memory | Apache-2.0 (subdir) |
-| GITM | arXiv 2305.17144 | **No code released** | — |
+| GITM | arXiv 2305.17144 | **No code released** | n/a |
 
 ## Policies and perception models
 
@@ -84,7 +84,7 @@ propagates. It is the main reason Craftonomous builds on mineflayer.
 | ROCKET-2 | arXiv 2503.02505 | Cross-view goal alignment; HF checkpoints | none found |
 | OpenHA | arXiv 2509.13347 | Hierarchical VLM agent; published HF checkpoint; verl RL stack | MIT |
 | Optimus-3 | arXiv 2506.10357 | Dual-router MoE across plan/ground/reflect/act | MIT |
-| SkillDiscovery | arXiv 2503.10684 | **Skill boundaries from policy loss spikes** — unsupervised segmentation | MIT |
+| SkillDiscovery | arXiv 2503.10684 | **Skill boundaries from policy loss spikes**, unsupervised segmentation | MIT |
 | MineDreamer | IROS 2025 | Chain-of-Imagination: diffuse a goal frame, then steer toward it | Apache-2.0 |
 | GROOT | arXiv 2310.08235 | Video-conditioned instruction following | none found |
 | CLIP4MC | ECCV 2024 | RL-friendly video-text reward model; task prompt bank | MIT |

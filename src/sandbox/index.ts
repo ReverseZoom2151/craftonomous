@@ -3,7 +3,7 @@
  * rules with no server, no Java and no network.
  *
  * Prior art is consistent that this is the cheapest way to make agent
- * evaluation reproducible — plancraft and MC-TextWorld both reach for it — and
+ * evaluation reproducible (plancraft and MC-TextWorld both reach for it) and
  * it is the only tier of the benchmark that can run on every commit.
  */
 

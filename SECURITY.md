@@ -13,10 +13,10 @@ security problem.**
 
 Report privately, by either route:
 
-1. **GitHub private vulnerability reporting** (preferred) — go to the
+1. **GitHub private vulnerability reporting** (preferred): go to the
    repository's **Security** tab and choose **Report a vulnerability**. This
    opens a private advisory visible only to maintainers.
-2. **Email** — <tibi.toca@gmail.com>, with `SECURITY` in the subject line.
+2. **Email**: <tibi.toca@gmail.com>, with `SECURITY` in the subject line.
 
 Please include:
 
@@ -33,13 +33,13 @@ anonymous. Please give us a chance to ship a fix before disclosing publicly.
 
 ## Operator responsibilities
 
-Some of the risk here is not a bug in the code — it is a property of what this
+Some of the risk here is not a bug in the code. It is a property of what this
 project does. Read this section before you run it.
 
 ### The MCP server hands game actions to an LLM
 
-Craftonomous exposes Minecraft actions — movement, block breaking and
-placing, inventory manipulation, chat — as MCP tools. Whatever model is
+Craftonomous exposes Minecraft actions (movement, block breaking and
+placing, inventory manipulation, chat) as MCP tools. Whatever model is
 connected to that server decides when to call them, and it decides based on
 text it reads from the world: chat messages, sign text, book contents, item
 names, player names. All of that is attacker-controlled input on a server you
@@ -70,8 +70,8 @@ server for development.
 
 `CRAFTONOMOUS_PROFILE=xray` and `omniscient` deliberately grant the agent
 information a human player could not obtain. They exist for research and
-ablation. They are not a sandbox escape and they are not a permission model —
-they change what the agent is allowed to _know_, never what it is allowed to
+ablation. They are not a sandbox escape and they are not a permission model.
+They change what the agent is allowed to _know_, never what it is allowed to
 _do_. Do not rely on `fair-play` as a safety control; rely on running against
 a server you own.
 

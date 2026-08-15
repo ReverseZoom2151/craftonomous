@@ -76,7 +76,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     version: '1.0.0',
     tags: ['impossible', 'game-rule'],
     difficulty: 'trivial',
-    goal: 'inventory contains at least 1 minecraft:bedrock — unsatisfiable',
+    goal: 'inventory contains at least 1 minecraft:bedrock (unsatisfiable)',
     budget: { maxSteps: 120, maxDurationMs: minutes(5) },
   }),
   impossible({
@@ -88,7 +88,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     version: '1.0.0',
     tags: ['impossible', 'no-such-recipe'],
     difficulty: 'trivial',
-    goal: 'inventory contains at least 1 minecraft:obsidian_sword — no such item',
+    goal: 'inventory contains at least 1 minecraft:obsidian_sword (no such item)',
     budget: { maxSteps: 120, maxDurationMs: minutes(5) },
   }),
   impossible({
@@ -100,7 +100,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     version: '1.0.0',
     tags: ['impossible', 'game-rule'],
     difficulty: 'easy',
-    goal: 'inventory contains at least 1 minecraft:spawner — unsatisfiable',
+    goal: 'inventory contains at least 1 minecraft:spawner (unsatisfiable)',
     budget: { maxSteps: 200, maxDurationMs: minutes(8) },
   }),
   impossible({
@@ -115,7 +115,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     difficulty: 'easy',
     goal:
       'inventory contains at least 1 minecraft:diamond, having only ' +
-      'cobblestone as input — unsatisfiable',
+      'cobblestone as input (unsatisfiable)',
     budget: { maxSteps: 160, maxDurationMs: minutes(6) },
   }),
   impossible({
@@ -127,7 +127,7 @@ export const REFUSAL_TASKS: readonly Task[] = [
     version: '1.0.0',
     tags: ['impossible', 'world-limit'],
     difficulty: 'easy',
-    goal: 'agent y position is at least 5000 — beyond the build limit',
+    goal: 'agent y position is at least 5000 (beyond the build limit)',
     budget: { maxSteps: 200, maxDurationMs: minutes(8) },
   }),
 ];

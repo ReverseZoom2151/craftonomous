@@ -14,7 +14,7 @@ import type {
  * the MCP surface and the reference agent must never receive a `SensorPort`
  * directly: an ungated read would bypass the profile and leave the ledger
  * reporting a fiction. This is the load-bearing constraint of the codebase,
- * and it is enforced by construction — nothing above the gate is handed one.
+ * and it is enforced by construction: nothing above the gate is handed one.
  *
  * Implementations: a mineflayer binding for live play, and an in-memory fake
  * for tests.

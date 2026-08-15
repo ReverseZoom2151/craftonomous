@@ -4,7 +4,7 @@
  * The runner owns budgets, repeats and timing. It owns nothing about how a task
  * is actually attempted: the agent under test arrives as an injected
  * `TaskExecutor`, a plain function, so that Craftonomous can evaluate an agent
- * it knows nothing about — which is the point of an agent-agnostic substrate,
+ * it knows nothing about, which is the point of an agent-agnostic substrate,
  * and the thing every surveyed benchmark gave up by baking its own agent loop
  * into the harness.
  */

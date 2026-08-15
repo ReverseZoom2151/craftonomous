@@ -19,7 +19,7 @@ The obvious measure is successes over attempts. It is a bad measure, and it is
 bad in a specific way that matters here.
 
 A freshly written skill has few attempts. If its first attempt succeeds, its
-observed rate is 1.0 — a perfect score, from one sample, for the code most
+observed rate is 1.0: a perfect score, from one sample, for the code most
 likely to be broken. Ranking on the observed rate puts brand-new untested
 skills at the top of the list, precisely inverting what you want.
 
@@ -57,7 +57,7 @@ failure, and a library that retires everything it has not yet exercised would
 empty itself on first run.
 
 Retirement is a signal, not a deletion. A retired skill stays in the library,
-flagged, so that the reason it stopped working remains inspectable — and so
+flagged, so that the reason it stopped working remains inspectable, and so
 that a fix can be measured against the record that condemned it.
 
 ## What this does not yet do

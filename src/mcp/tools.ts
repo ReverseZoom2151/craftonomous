@@ -14,7 +14,7 @@ import { describeSkillTool, unwrapArguments } from './schema.js';
  * The narrow slice of a skill runner this layer needs.
  *
  * Declared structurally rather than imported so the MCP surface does not
- * depend on how skills are run — timeouts, interrupts and reliability
+ * depend on how skills are run: timeouts, interrupts and reliability
  * accounting are the runner's business, and the tool layer should not be able
  * to notice when they change.
  */
@@ -39,7 +39,7 @@ export type SkillContextFactory = (signal: AbortSignal) => SkillContext;
  * can self-correct.
  *
  * Every `FailureKind` we produce is the second kind. A precondition that did
- * not hold, a target that could not be reached, a budget that ran out — these
+ * not hold, a target that could not be reached, a budget that ran out: these
  * are things that happened in the world, and an agent told about them can do
  * something next. Only "no skill by that name" is a protocol error, because
  * the agent asked for something this body does not have.
@@ -106,7 +106,7 @@ export function failureResult(
   };
   const human =
     `${skill} failed: ${kind} ` +
-    `(${retryable ? 'retryable' : 'not retryable'}) — ${message}\n` +
+    `(${retryable ? 'retryable' : 'not retryable'}): ${message}\n` +
     JSON.stringify(payload, null, 2);
   return textResult(payload, human);
 }
@@ -193,7 +193,7 @@ export class ToolDispatcher {
    * read the kind and decide. An unknown tool throws {@link McpError} instead:
    * that is a protocol error, not something that happened in the world.
    *
-   * Rate limiting would sit here, in front of `invoker.run` — one place, on
+   * Rate limiting would sit here, in front of `invoker.run`: one place, on
    * the only path from an agent to an actuator. Nothing enforces a call budget
    * yet; a hostile or looping client can invoke as fast as the body responds.
    */

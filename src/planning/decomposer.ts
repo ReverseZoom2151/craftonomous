@@ -2,7 +2,7 @@
  * Bounded incremental decomposition.
  *
  * The technique worth taking from VillagerAgent is not "ask a model to break
- * the goal down" — everyone does that — it is *refusing to plan the whole tree
+ * the goal down" (everyone does that). It is *refusing to plan the whole tree
  * up front*. At most `lookahead` nodes are expanded per round, so the planning
  * context stays bounded no matter how large the goal is, and the plan below the
  * frontier stays unwritten until the world has had a chance to contradict it.
@@ -26,7 +26,7 @@ export interface ExpandContext {
 
 /**
  * Break a goal into subgoals. Returning an empty array means "this is
- * primitive, do not decompose it further" — that is the expander's only way to
+ * primitive, do not decompose it further". That is the expander's only way to
  * say stop, and it is honoured.
  */
 export type Expander = (
@@ -106,8 +106,8 @@ interface Frontier {
 /**
  * Expand `goal` into a task graph, a bounded number of nodes at a time.
  *
- * Termination is guaranteed by four independent guards — depth, node count,
- * round count, and repeat detection — because each alone is easy to defeat: a
+ * Termination is guaranteed by four independent guards (depth, node count,
+ * round count, and repeat detection) because each alone is easy to defeat: a
  * model that answers "mine iron" with ["mine iron"] defeats depth accounting
  * only if repeats are ignored, and a model that fans out defeats repeat
  * detection only if node count is unbounded.

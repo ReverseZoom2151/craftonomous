@@ -36,7 +36,7 @@ be fiction and the profile unenforceable.
 ## Why the agent sits outside
 
 Five projects in the [survey](PRIOR_ART.md) independently started pulling agent
-reasoning out of the Minecraft integration — haksnbot, clawcraft,
+reasoning out of the Minecraft integration: haksnbot, clawcraft,
 gemini-minecraft, justjavac's minecraft-agent, and plancraft. None finished.
 The pattern keeps recurring because the coupling is genuinely wrong: a bot
 framework that owns its own LLM loop can only ever be evaluated as a whole, and
@@ -72,8 +72,8 @@ a structured result. Around every invocation sits:
 
 Two ideas here are taken from prior art, reimplemented rather than copied.
 mindcraft wraps every skill call with timeout, interrupt and loop detection, and
-keeps a layer of always-ticking reflexes that can override the planner — the
-right answer, since drowning should not require an LLM round-trip.
+keeps a layer of always-ticking reflexes that can override the planner. That is
+the right answer, since drowning should not require an LLM round-trip.
 minecraft-agent-swarm tracks per-skill success rates and retires skills that
 stop working, which is the feedback loop the Voyager lineage never closed.
 
@@ -84,8 +84,8 @@ than a large set with none, and it is the honest thing to promise.
 
 ### MCP surface
 
-Skills become MCP tools. World state becomes MCP resources. The run manifest —
-outcome, perception report, reliability table — is emitted as structured output.
+Skills become MCP tools. World state becomes MCP resources. The run manifest
+(outcome, perception report, reliability table) is emitted as structured output.
 
 ### Evaluation
 

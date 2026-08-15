@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Check [docs/ROADMAP.md](../blob/main/docs/ROADMAP.md) first — the idea
+        Check [docs/ROADMAP.md](../blob/main/docs/ROADMAP.md) first. The idea
         may already be planned.
 
   - type: textarea
@@ -60,7 +60,7 @@ body:
       description: >
         Have other projects solved this? Name and link them, and say what you
         would take conceptually. Reference implementations may be read and
-        cited, never copied — see CONTRIBUTING.md.
+        cited, never copied. See CONTRIBUTING.md.
 
   - type: textarea
     id: alternatives

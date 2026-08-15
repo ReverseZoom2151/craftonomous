@@ -34,7 +34,7 @@ function erase<I, O>(skill: Skill<I, O>): AnySkill {
  *
  * Deliberately small. A skill in this list is expected to carry a measured
  * reliability figure, and a long list of unmeasured skills is worth less than a
- * short list of known ones — see ARCHITECTURE.md on why the library is narrow
+ * short list of known ones. See ARCHITECTURE.md on why the library is narrow
  * and deep rather than a port of somebody else's 205.
  */
 export const CORE_SKILLS: readonly AnySkill[] = [

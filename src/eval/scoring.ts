@@ -74,7 +74,7 @@ export interface ScoredOutcome {
  *
  * For an `impossible` task the polarity flips: `refused` is the only correct
  * answer, `success` is impossible by construction and therefore a false claim,
- * and failing or timing out earns nothing — the agent burned its budget on a
+ * and failing or timing out earns nothing: the agent burned its budget on a
  * goal it should have recognised. An agent that never refuses anything scores
  * zero on every impossible task, which is the whole point of including them.
  */
@@ -138,7 +138,7 @@ const Z = 1.959963984540054;
  * This deliberately mirrors `wilsonLowerBound` in src/skills/reliability.ts
  * rather than importing it. The duplication is intentional: the eval harness
  * must stay usable against any implementation of the substrate, so it takes no
- * dependency on the skill layer. The reasoning is identical in both places — a
+ * dependency on the skill layer. The reasoning is identical in both places: a
  * 3/3 run is not a 100% agent, and the naive rate is maximally wrong exactly
  * when the evidence is thinnest, which is when a new agent is first measured.
  * If one of the two is ever changed, change both.

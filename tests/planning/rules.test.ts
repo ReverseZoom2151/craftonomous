@@ -20,8 +20,8 @@ import {
 const CRAFT = 'craft_wooden_pickaxe';
 
 /**
- * A small, fully determined log. Two things must be learned — a crafting table
- * has to be nearby, and three planks are needed — and one irrelevant fact
+ * A small, fully determined log. Two things must be learned (a crafting table
+ * has to be nearby, and three planks are needed) and one irrelevant fact
  * (sticks, constant everywhere) must not be.
  */
 const log: readonly Transition[] = [
@@ -273,7 +273,7 @@ describe('stage c: greedy maximum-coverage prune', () => {
     expect(withBroad.rules.map((x) => x.id)).toEqual(['A::p:gte:9']);
     expect(withBroad.covered).toBe(3);
 
-    // Without it, greedy needs both narrow rules to reach the same coverage —
+    // Without it, greedy needs both narrow rules to reach the same coverage,
     // which is the sense in which the selected set is minimal.
     const withoutBroad = prune([narrowA, narrowB], wide);
     expect(withoutBroad.rules).toHaveLength(2);

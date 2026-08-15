@@ -84,7 +84,7 @@ export class FakeSensorPort implements SensorPort {
  * Actuators that really change the {@link FakeWorld}: digging removes a block
  * and yields its drop, moving teleports the body, crafting consumes inputs. A
  * skill exercised against this port is exercised end to end, offline and
- * deterministically — which is the only way skill reliability figures mean
+ * deterministically, which is the only way skill reliability figures mean
  * anything before a server is involved.
  */
 export class FakeActuatorPort implements ActuatorPort {

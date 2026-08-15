@@ -1,7 +1,7 @@
 /**
  * A hypothesised world model that experience is allowed to overrule.
  *
- * XENON's contribution is not the recipe graph — everyone has one — it is that
+ * XENON's contribution is not the recipe graph (everyone has one). It is that
  * the graph is a *prior*, seeded from something unreliable (a model's guess, a
  * wiki scrape, a previous game version) and then repaired by what actually
  * happened. The reimplementation here keeps that shape and adds the property
@@ -37,7 +37,7 @@ export interface Edge extends EdgeKey {
 export type EdgeSource = 'hypothesis' | 'observation';
 
 export interface EdgeSeed extends EdgeKey {
-  /** Prior belief. Default 0.5 — an honest shrug. */
+  /** Prior belief. Default 0.5, an honest shrug. */
   readonly confidence?: number;
 }
 
@@ -75,7 +75,7 @@ const EPS = 1e-4;
  * Saturation bound on accumulated log-odds, equal to `logit(1 - EPS)`.
  *
  * Without it, a hundred consistent observations push confidence to exactly 1.0
- * in floating point and the edge becomes unfalsifiable — the failure this whole
+ * in floating point and the edge becomes unfalsifiable, the failure this whole
  * module exists to avoid. Bounding the belief means a long-held certainty can
  * still be overturned by a bounded amount of contrary evidence.
  */
@@ -127,7 +127,7 @@ export class KnowledgeGraph {
   }
 
   /**
-   * Seed a prior. Re-seeding an existing edge resets it — a seed is a statement
+   * Seed a prior. Re-seeding an existing edge resets it: a seed is a statement
    * about what we believe before evidence, so it cannot be allowed to
    * accumulate as though it were evidence.
    */
@@ -218,7 +218,7 @@ export class KnowledgeGraph {
 
   /**
    * The subgraph currently trusted at `threshold`. Returned as a graph rather
-   * than a list so a planner can be handed beliefs and nothing else — it should
+   * than a list so a planner can be handed beliefs and nothing else. It should
    * not be able to accidentally read an edge the evidence has retired.
    */
   believed(threshold: number = this.#threshold): KnowledgeGraph {

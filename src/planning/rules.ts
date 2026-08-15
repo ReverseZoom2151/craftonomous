@@ -1,9 +1,9 @@
 /**
  * Learning action preconditions from an agent's own failures.
  *
- * WALL-E's result is that an agent which mines rules from its failed attempts —
- * propose candidate preconditions, refine them, then prune by maximum coverage
- * — needs far fewer attempts than one that only reflects in prose. Its
+ * WALL-E's result is that an agent which mines rules from its failed attempts
+ * (propose candidate preconditions, refine them, then prune by maximum
+ * coverage) needs far fewer attempts than one that only reflects in prose. Its
  * demonstration is a 2D Crafter clone; whether it survives contact with real
  * Minecraft preconditions is open, and is the reason this module exists. The
  * pipeline shape is taken from the paper's description; the implementation is
@@ -132,14 +132,14 @@ export function condition(
 }
 
 /* ------------------------------------------------------------------ */
-/* Stage a — propose                                                   */
+/* Stage a: propose                                                    */
 /* ------------------------------------------------------------------ */
 
 /**
  * The offline proposer: contrast the states before failures against the states
  * before successes, and nominate every fact that separates them.
  *
- * This is genuinely a learner, not a stub — it is what the tests exercise and
+ * This is genuinely a learner, not a stub: it is what the tests exercise and
  * what runs when no model is wired up. It over-proposes on purpose; separating
  * the real precondition from the coincidence is the job of stages b and c.
  */
@@ -235,7 +235,7 @@ function summariseEffect(successes: readonly Transition[]): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* Stage b — refine                                                    */
+/* Stage b: refine                                                     */
 /* ------------------------------------------------------------------ */
 
 /**
@@ -244,7 +244,7 @@ function summariseEffect(successes: readonly Transition[]): string {
  * separates the log best.
  *
  * "Best" is the threshold with the highest confidence, ties broken toward the
- * most permissive value — a precondition that vetoes too much is worse than one
+ * most permissive value: a precondition that vetoes too much is worse than one
  * that vetoes too little, because the agent can recover from a surprise but
  * cannot recover from never trying.
  */
@@ -359,7 +359,7 @@ export function toRule(
 }
 
 /* ------------------------------------------------------------------ */
-/* Stage c — prune                                                     */
+/* Stage c: prune                                                      */
 /* ------------------------------------------------------------------ */
 
 export interface PruneOptions {
@@ -389,8 +389,8 @@ export interface PruneResult {
  * (1 - 1/e) ≈ 0.632 approximation and can return more rules than the true
  * optimum. That is an accepted trade: the alternative is an exact solve over a
  * set that grows with every failure the agent ever logs. Ties break toward
- * higher confidence, then toward a stable id, so the output is deterministic —
- * a rule set that reshuffles between identical runs is not auditable.
+ * higher confidence, then toward a stable id, so the output is deterministic.
+ * A rule set that reshuffles between identical runs is not auditable.
  *
  * Pure: no injected model, no I/O. Stages a and b may be a model's opinion;
  * this stage is arithmetic, and is the one the tests pin down hardest.

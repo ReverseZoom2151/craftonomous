@@ -15,8 +15,8 @@
  *
  * ## Statefulness
  *
- * MCP has no protocol-level session. Anything stateful — an open container,
- * for instance — must be handed back to the agent as an explicit opaque handle
+ * MCP has no protocol-level session. Anything stateful (an open container,
+ * for instance) must be handed back to the agent as an explicit opaque handle
  * and accepted as an argument later, never inferred from connection state.
  * The `craftonomous://surroundings` resource reports the open container as an
  * observation, not as a session the agent is inside.
@@ -62,7 +62,7 @@ const INSTRUCTIONS = `A Minecraft body, driven over MCP.
 
 Tools are skills. A tool call returns structured content: on success
 { ok: true, value, durationMs }, on failure { ok: false, kind, retryable,
-message } with isError set. The failure kind is the useful part — 'timeout',
+message } with isError set. The failure kind is the useful part: 'timeout',
 'unreachable' and 'world-changed' are worth retrying, 'precondition' means
 re-plan, 'not-permitted' means the perception profile forbade a read the skill
 needed.
@@ -154,8 +154,9 @@ export function createServer(options: CreateServerOptions): CraftonomousServer {
       return resources.read(request.params.uri);
     } catch (error) {
       // An unknown URI is a protocol error: the agent asked for something this
-      // server does not have. A world it cannot currently sense is not — that
-      // comes back inside the resource as `available: false`.
+      // server does not have. A world it cannot currently sense is not a
+      // protocol error; that comes back inside the resource as
+      // `available: false`.
       if (error instanceof UnknownResource) {
         throw new McpError(ErrorCode.InvalidParams, error.message);
       }

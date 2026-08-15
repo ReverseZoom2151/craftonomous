@@ -16,7 +16,7 @@ import type { WorldView } from '../perception/world-view.js';
  * Turning a `WorldView` into text an LLM can read.
  *
  * The one thing this file must never do is launder provenance. A remembered
- * block rendered as a bare fact — `iron_ore at (12,40,-3)` — reads to a model
+ * block rendered as a bare fact, `iron_ore at (12,40,-3)`, reads to a model
  * exactly like something the agent can see right now. If that sighting was four
  * minutes ago the agent will walk to a hole in the ground and report success on
  * a fiction. So every line carries its tag, and remembered lines carry an age.

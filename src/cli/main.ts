@@ -162,7 +162,7 @@ export async function main(
   const config = readConfig(env);
   const specifier = env['CRAFTONOMOUS_BOOTSTRAP'] ?? DEFAULT_BOOTSTRAP;
 
-  note(`craftonomous — MCP body over stdio`);
+  note(`craftonomous: MCP body over stdio`);
   note(
     `  server ${config.host}:${config.port} as "${config.username}"` +
       `${config.version ? ` (${config.version})` : ' (version auto-detected)'}` +
@@ -173,7 +173,7 @@ export async function main(
   const { session, reason } = await loadSession(config, specifier);
 
   if (session) {
-    note('  mode: LIVE — a Minecraft body is bound');
+    note('  mode: LIVE, a Minecraft body is bound');
     const { server } = createServer({
       registry: session.registry,
       invoker: session.invoker,
@@ -187,7 +187,7 @@ export async function main(
 
   // Offline. Say exactly what is missing; do not start something that looks
   // live and answers with invented world state.
-  note('  mode: OFFLINE — no Minecraft body is bound');
+  note('  mode: OFFLINE, no Minecraft body is bound');
   note(`  reason: ${reason ?? 'no embodiment binding was found'}`);
   note('  missing: a module exporting createSession(config): Session,');
   note(`           resolved from CRAFTONOMOUS_BOOTSTRAP (default ${DEFAULT_BOOTSTRAP}).`);

@@ -8,7 +8,7 @@ import minecraftData from 'minecraft-data';
  * full shaped/shapeless recipe set keyed by numeric item id; we normalise it to
  * item names and ingredient multisets, which is all a symbolic planner needs.
  *
- * Smelting is *not* in `minecraft-data` — the package carries `recipes.json`
+ * Smelting is *not* in `minecraft-data`: the package carries `recipes.json`
  * (crafting only), with no furnace, blasting, smoking or campfire data. The
  * smelting table below is therefore hand-authored and deliberately small; see
  * `SMELTING` for exactly what it covers. Every entry is validated against the

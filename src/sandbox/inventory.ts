@@ -7,9 +7,9 @@
  * tree. Modelling it here would add a source of divergence without adding a
  * question worth asking of a planner.
  *
- * Every mutation returns a new `Inventory`. Planning searches speculate — they
- * try a recipe, discover it does not close, and back out — and shared mutable
- * state is where that goes wrong.
+ * Every mutation returns a new `Inventory`. Planning searches speculate: they
+ * try a recipe, discover it does not close, and back out. Shared mutable state
+ * is where that goes wrong.
  */
 
 /** A plain item-name to count mapping. Counts are positive integers. */

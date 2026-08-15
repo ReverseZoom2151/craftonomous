@@ -10,7 +10,7 @@ import type { Clock } from '../runtime/clock.js';
  * turns into a summary keeps the shape of what happened at a fraction of the
  * cost, which is the honest trade.
  *
- * Durable knowledge — facts learned, places named — lives in a separate list
+ * Durable knowledge (facts learned, places named) lives in a separate list
  * that summarisation never touches. Where the diamonds are should not decay
  * because the conversation got long.
  */
@@ -72,8 +72,8 @@ function clip(text: string, max: number): string {
 /**
  * The default summariser: one bullet per folded turn, capped in length.
  *
- * When the cap bites it condenses from the middle, so the earliest turns — the
- * ones nothing else can recover — and the most recent ones both survive.
+ * When the cap bites it condenses from the middle, so the earliest turns (the
+ * ones nothing else can recover) and the most recent ones both survive.
  */
 export function createSummariser(
   options: { readonly maxChars?: number; readonly maxTurnChars?: number } = {},
@@ -265,7 +265,7 @@ export class AgentMemory {
         `== places ==\n${[...this.#locations.values()]
           .map(
             (l) =>
-              `- ${l.name}: (${Math.round(l.position.x)},${Math.round(l.position.y)},${Math.round(l.position.z)})${l.note === undefined ? '' : ` — ${l.note}`}`,
+              `- ${l.name}: (${Math.round(l.position.x)},${Math.round(l.position.y)},${Math.round(l.position.z)})${l.note === undefined ? '' : `, ${l.note}`}`,
           )
           .join('\n')}`,
       );

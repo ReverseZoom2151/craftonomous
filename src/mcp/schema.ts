@@ -96,7 +96,7 @@ export interface SkillToolDefinition {
  *
  * No `outputSchema` is declared. MCP requires that a tool declaring one return
  * `structuredContent` conforming to it, and our structured content is a result
- * envelope — `{ ok, skill, value | kind, retryable, durationMs }` — not the
+ * envelope, `{ ok, skill, value | kind, retryable, durationMs }`, not the
  * skill's own output type. Declaring the skill's output schema here would make
  * every failure a schema violation. The envelope is documented in `tools.ts`
  * instead; when MCP gains a way to describe a discriminated result, this is

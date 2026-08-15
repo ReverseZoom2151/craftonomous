@@ -49,7 +49,7 @@ Every fact handed to an agent is an `Observed<T>` carrying how it was obtained:
 Provenance combines pessimistically. A derived fact is no fresher and no more
 directly grounded than its weakest premise, so anything computed from a
 privileged read is itself privileged. The taint cannot be laundered by
-deriving something from it — which matters, because laundering is exactly what
+deriving something from it, which matters, because laundering is exactly what
 a sufficiently clever agent implementation would otherwise do by accident.
 
 ### Profiles
@@ -84,7 +84,7 @@ would leave the agent mysteriously less capable with the cause buried several
 layers down. Failing loudly makes the profile's effect obvious at the moment it
 bites.
 
-Out-of-range sightings return `undefined`, meaning *not known* — which is
+Out-of-range sightings return `undefined`, meaning *not known*, which is
 different from *not there*. Neither a denied read nor an out-of-range one is
 counted, because neither happened.
 

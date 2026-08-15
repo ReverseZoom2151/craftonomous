@@ -7,7 +7,7 @@ import { TechTree } from './techtree.js';
  * Runs a policy against a task under a step budget.
  *
  * The policy is a plain function, not a class or an agent. Anything that can
- * look at a world and name an action can be measured here — a hand-written
+ * look at a world and name an action can be measured here: a hand-written
  * baseline, a planner, or a transcript replayed from a language model.
  */
 

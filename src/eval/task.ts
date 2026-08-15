@@ -6,7 +6,7 @@
  * baselines were invalidated by a bug found after publication, several score
  * with a VLM judge that will be deprecated out from under the numbers, and the
  * task suites that are pinned at all are pinned to a Minecraft version and a
- * JDK from 2021. In every case the failure is the same shape — a score was
+ * JDK from 2021. In every case the failure is the same shape: a score was
  * published without the exact conditions that produced it.
  *
  * So a task here carries a version, a suite carries a version, and a manifest
@@ -56,7 +56,7 @@ export interface Task {
    * Human-readable description of the goal predicate. The predicate itself is
    * evaluated by the executor against real game state; it is described here so
    * that a task definition is legible without reading code. It is deliberately
-   * *not* a natural-language rubric for a model judge — nothing in this module
+   * *not* a natural-language rubric for a model judge: nothing in this module
    * scores with a model.
    */
   readonly goal: string;
@@ -127,8 +127,8 @@ function taskIdentity(task: Task): string {
 /**
  * Stable content hash over the manifest's identity and its task set.
  *
- * Order-independent over the tasks — reordering a suite does not change what
- * was measured — but sensitive to a task's id or version, because either of
+ * Order-independent over the tasks (reordering a suite does not change what
+ * was measured) but sensitive to a task's id or version, because either of
  * those changing means the suite is no longer the one an old score was earned
  * on. Truncated to 16 hex characters: long enough to name a suite, short
  * enough to sit in a printed table.

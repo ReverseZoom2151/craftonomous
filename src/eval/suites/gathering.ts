@@ -4,7 +4,7 @@
  * Wood to planks to sticks to wooden tools to stone tools: the shortest honest
  * ladder in the game, and the one every Minecraft-agent paper opens with. It is
  * used here because each rung has a goal predicate that can be checked against
- * inventory state by exact item count — no rubric, no judge, no screenshot.
+ * inventory state by exact item count: no rubric, no judge, no screenshot.
  *
  * These are data. Nothing here knows how a task is attempted; that arrives as
  * an injected executor at run time.

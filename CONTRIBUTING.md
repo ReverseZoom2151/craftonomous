@@ -49,7 +49,7 @@ a parts bin**.
 
 - **Read it.** Understanding how others solved a problem is the point of
   having it.
-- **Cite it.** When prior art informed a design decision, say so — in
+- **Cite it.** When prior art informed a design decision, say so in
   `docs/PRIOR_ART.md`, in a code comment, or in the pull request description.
   Name the repository and what you took from it conceptually.
 - **Never copy from it.** No source files, no functions, no snippets, no
@@ -72,7 +72,7 @@ easiest thing in this project to break by accident.
   update the claim in the same pull request.
 - Do not add a README claim for something that only exists in a branch, a
   design document, or your head.
-- The same rule applies to `docs/` — `ARCHITECTURE.md`, `PERCEPTION.md`, and
+- The same rule applies to `docs/`: `ARCHITECTURE.md`, `PERCEPTION.md`, and
   `SKILL_RELIABILITY.md` describe real behaviour, not intent. Aspirational
   material belongs in `docs/ROADMAP.md`, clearly marked as such.
 
@@ -83,7 +83,7 @@ the claims without shipping the behaviour, will be asked to do the other half.
 
 New behaviour needs tests. Tests live in `tests/`, mirroring the `src/` layout,
 and run under Vitest. Perception and reliability code in particular is where
-the project's honesty lives — if you touch the perception gate, the ledger,
+the project's honesty lives. If you touch the perception gate, the ledger,
 or reliability accounting, expect to be asked for tests that pin down the
 edge cases, not just the happy path.
 
@@ -100,7 +100,7 @@ it long after the world had changed underneath it. Weight recent
 outcomes more heavily so the estimate tracks current conditions.
 ```
 
-- Subject: imperative mood ("Add", "Fix", "Remove" — not "Added", "Adds",
+- Subject: imperative mood ("Add", "Fix", "Remove", not "Added", "Adds",
   "Fixing"), no trailing period, kept short enough to read in a log.
 - Body: wrap at 72 columns. Explain the reason for the change and the
   consequence of not making it. The diff already shows _what_ changed; the
@@ -109,7 +109,7 @@ outcomes more heavily so the estimate tracks current conditions.
 
 ## Pull requests
 
-Fill in the pull request template. Keep pull requests focused — one concern
+Fill in the pull request template. Keep pull requests focused: one concern
 per pull request makes review, revert, and bisect all cheaper.
 
 ## Reporting security issues

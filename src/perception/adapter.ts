@@ -41,8 +41,8 @@ export interface PerceptionAdapterOptions {
  * The one and only place a {@link SensorPort} is allowed to live.
  *
  * **This is the only class in the codebase permitted to hold a `SensorPort`.**
- * Everything above it — skills, planners, the MCP surface, the reference agent
- * — receives a {@link WorldView} and nothing else. That is not a style
+ * Everything above it (skills, planners, the MCP surface, the reference agent)
+ * receives a {@link WorldView} and nothing else. That is not a style
  * preference: an ungated read anywhere above this line would bypass the active
  * {@link PerceptionProfile} and leave the ledger reporting a fiction about what
  * the agent actually knew. The constraint is enforced by construction, because
@@ -217,7 +217,7 @@ export class PerceptionAdapter implements WorldView {
   /**
    * Pull a recollection, counting it. Recalls go through the ledger by hand
    * rather than through `gate.sense`, because `sense` stamps the present time
-   * and a recollection must keep the moment it was actually sensed — the age is
+   * and a recollection must keep the moment it was actually sensed. The age is
    * the whole reason memory is tagged separately from sight.
    */
   #recall(position: Vec3Like): Observed<BlockInfo> | undefined {

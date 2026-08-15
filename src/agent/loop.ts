@@ -30,8 +30,8 @@ import {
  *
  * - **A step budget.** An agent that can loop forever cannot be compared with
  *   one that cannot, and an unbounded run is an unbounded bill.
- * - **An abort signal.** Something outside the loop — a reflex, a supervisor, a
- *   human — must be able to stop it between steps.
+ * - **An abort signal.** Something outside the loop (a reflex, a supervisor, a
+ *   human) must be able to stop it between steps.
  * - **A trace.** Every decision and every outcome is recorded. A result you
  *   cannot reconstruct is an anecdote, and reconstructing it after the fact
  *   from logs is how prior work ends up unable to say what its agent knew.

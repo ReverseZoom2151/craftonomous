@@ -32,7 +32,7 @@ export class NoBodyBound extends Error {
  * A world view with nothing behind it.
  *
  * Used when the server starts without a connected body. Every read either says
- * *not known* — which is exactly what an empty `WorldView` result means — or
+ * *not known* (exactly what an empty `WorldView` result means) or
  * throws {@link NoBodyBound} for the two facts that cannot honestly be absent,
  * the body and the inventory. The alternative, returning a body at the origin
  * with full health, would put a fabrication where a measurement belongs, and

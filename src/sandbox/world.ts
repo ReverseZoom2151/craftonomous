@@ -134,8 +134,9 @@ export class SymbolicWorld {
   /**
    * Bring a crafting table or furnace into reach.
    *
-   * Placement is not modelled as an action — the sandbox has no positions — but
-   * a task that starts without a table and crafts one needs some way to say so.
+   * Placement is not modelled as an action, because the sandbox has no
+   * positions, but a task that starts without a table and crafts one needs
+   * some way to say so.
    */
   bringIntoReach(station: 'crafting_table' | 'furnace'): void {
     if (station === 'crafting_table') this.#craftingTable = true;

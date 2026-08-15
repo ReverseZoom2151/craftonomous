@@ -97,7 +97,7 @@ export function summariseRun(
     : 'fair play broken';
   return (
     `${outcome.task} ${verdict}${score} under perception profile ` +
-    `"${profile.name}" — ${perception.total} observations, ` +
+    `"${profile.name}": ${perception.total} observations, ` +
     `${percent(perception.privilegedShare)} privileged, ${fairPlay}; ` +
     `${skills.length} skills tracked, ${successes}/${attempts} attempts succeeded`
   );

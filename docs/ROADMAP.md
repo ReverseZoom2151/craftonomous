@@ -37,8 +37,9 @@ breadth is expensive and coverage claims must stay modest.
 
 - Skill schema: Zod input/output, declared preconditions, structured results
 - Invocation wrapper: timeout, interrupt, cancellation, reliability recording
-- A reflex layer that can pre-empt a running skill — drowning, fire, falling,
-  low health. Prior art is clear that this belongs below the planner, not in it
+- A reflex layer that can pre-empt a running skill on drowning, fire, falling,
+  or low health. Prior art is clear that this belongs below the planner, not in
+  it
 - A first skill set: move, dig, place, craft, smelt, container in/out, equip,
   consume, attack
 - Failure taxonomy so that timeout, unmet precondition and pathfinder-gave-up
@@ -70,7 +71,7 @@ substrate is usable and to give the benchmark a baseline.
 Deliberately after the substrate, not before.
 
 - **Rule learning from failure.** WALL-E mines action preconditions from an
-  agent's own failed attempts — propose, refine, prune by maximum coverage — but
+  agent's own failed attempts (propose, refine, prune by maximum coverage) but
   demonstrates it on a 2D Crafter clone, not Minecraft. Applying it to real
   Minecraft crafting and interaction preconditions appears to be unexplored.
 - **Experience-corrected world model.** XENON maintains a hypothesised recipe

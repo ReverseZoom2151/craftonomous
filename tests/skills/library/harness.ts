@@ -178,7 +178,7 @@ export class FakeWorld implements WorldView {
     this.blocks.set(key(b.position), b);
   }
 
-  /** Make a cell unknown again — as if the agent had never sensed it. */
+  /** Make a cell unknown again, as if the agent had never sensed it. */
   forget(position: Vec3Like): void {
     this.blocks.delete(key(position));
   }

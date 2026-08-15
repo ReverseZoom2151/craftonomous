@@ -85,7 +85,7 @@ function describeError(err: unknown): string {
  * translation of thrown errors into `SkillResult` failures.
  *
  * A read the profile forbade is `not-permitted` rather than `unknown`, because
- * the caller's remedy — change the profile, or explore for the fact — is
+ * the caller's remedy (change the profile, or explore for the fact) is
  * entirely different from the remedy for a bug.
  */
 export async function guarded<T>(
