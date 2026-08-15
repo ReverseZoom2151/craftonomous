@@ -1,6 +1,6 @@
 <h1 align="center">Craftonomous</h1>
 
-<p align="center"><strong>An honest Minecraft body for AI agents</strong></p>
+<p align="center"><strong>Agent-Agnostic Minecraft Embodiment and Evaluation Substrate</strong></p>
 
 Craftonomous puts an agent into Minecraft and measures what it does. It is not
 a bot. It is the body, the senses and the scoreboard that a bot plugs into,
