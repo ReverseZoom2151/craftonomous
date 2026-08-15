@@ -49,8 +49,8 @@ else, including the whole test suite, runs offline.
 {
   "mcpServers": {
     "craftonomous": {
-      "command": "npx",
-      "args": ["craftonomous"],
+      "command": "node",
+      "args": ["/path/to/craftonomous/dist/cli/main.js"],
       "env": {
         "MINECRAFT_HOST": "localhost",
         "MINECRAFT_PORT": "25565",
@@ -67,6 +67,9 @@ The agent gets the skills as tools and the world as resources it can read:
 `://skills`. When a skill fails it comes back as a tool result carrying the
 reason and whether retrying is worth it, so the model can correct itself
 rather than being handed an opaque transport error.
+
+Run `npm run build` first. The package is not on npm yet, so point the command
+at the built entry point rather than at `npx`.
 
 If there is no body to connect to, the server starts in offline mode and says
 what is missing. It will not invent a body at the origin with full health.
