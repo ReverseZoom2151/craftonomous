@@ -9,6 +9,10 @@ import type {
 import type { Observed } from '../observation/observed.js';
 import type { PerceptionReport } from './ledger.js';
 import type { PerceptionProfile } from './profile.js';
+// Type-only, so verbatimModuleSyntax erases them and the cycle with the
+// adapter that implements this interface never exists at runtime.
+import type { HeardSound } from './adapter.js';
+import type { Testimony } from './testimony.js';
 
 /**
  * The only way anything above the gate learns about the world.
@@ -54,6 +58,32 @@ export interface WorldView {
 
   /** Everything the agent recalls but cannot currently sense. */
   recollections(): readonly Observed<BlockInfo>[];
+
+  /**
+   * Sounds heard since this was last called.
+   *
+   * Draining rather than reading a standing list, because a sound is an event.
+   * A getter returning the same sound forever would let an agent act twice on
+   * one footstep.
+   *
+   * A `HeardSound` carries a bearing and a distance band, never a position.
+   * Handing over the exact coordinate would be sight wearing hearing's label.
+   */
+  sounds(): readonly Observed<HeardSound>[];
+
+  /**
+   * Things said to the agent since this was last called, as unverified claims.
+   *
+   * Testimony never becomes a stronger provenance. Believing a speaker is a
+   * decision for whatever is reasoning, not a property of the observation.
+   */
+  testimony(): readonly Observed<Testimony>[];
+
+  /**
+   * Whether the agent's own sightings support a speaker having known about a
+   * position. This establishes opportunity, never truth.
+   */
+  checkPositionClaim(claim: Testimony, position: Vec3Like): Testimony;
 
   /** How this agent has come by its knowledge so far. */
   report(): PerceptionReport;

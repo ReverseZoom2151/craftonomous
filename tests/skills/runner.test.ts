@@ -47,6 +47,10 @@ function fakeWorld(body: BodyState = BODY, inventory: ItemStack[] = []): WorldVi
     findBlocks: () => [],
     openContainer: () => undefined,
     recollections: () => [],
+    // Unexercised here; hearing and testimony have their own tests.
+    sounds: () => [],
+    testimony: () => [],
+    checkPositionClaim: (claim) => claim,
     report: () => ledger.report(),
   };
 }

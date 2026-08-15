@@ -15,6 +15,8 @@ import type { PerceptionReport } from '../../src/perception/ledger.js';
 import type { PerceptionProfile } from '../../src/perception/profile.js';
 import { FAIR_PLAY, OMNISCIENT } from '../../src/perception/profile.js';
 import type { WorldView } from '../../src/perception/world-view.js';
+import type { HeardSound } from '../../src/perception/adapter.js';
+import type { Testimony } from '../../src/perception/testimony.js';
 import { SkillRegistry } from '../../src/skills/registry.js';
 import { ReliabilityTracker } from '../../src/skills/reliability.js';
 import type { Skill } from '../../src/skills/types.js';
@@ -106,6 +108,20 @@ class FakeWorldView implements WorldView {
 
   recollections(): readonly Observed<BlockInfo>[] {
     return [{ value: REMEMBERED_ORE, provenance: 'memory', sensedAt: 500 }];
+  }
+
+  // Senses this double does not exercise. Present so it satisfies WorldView;
+  // hearing and testimony have their own dedicated tests.
+  sounds(): readonly Observed<HeardSound>[] {
+    return [];
+  }
+
+  testimony(): readonly Observed<Testimony>[] {
+    return [];
+  }
+
+  checkPositionClaim(claim: Testimony): Testimony {
+    return claim;
   }
 
   report(): PerceptionReport {

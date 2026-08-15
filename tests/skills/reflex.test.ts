@@ -80,6 +80,10 @@ function fakeWorld(options: WorldOptions = {}): WorldView {
     findBlocks: () => (options.found ?? []).map((b) => observe(b, 'sight', 0)),
     openContainer: () => undefined,
     recollections: () => [],
+    // Unexercised here; hearing and testimony have their own tests.
+    sounds: () => [],
+    testimony: () => [],
+    checkPositionClaim: (claim) => claim,
     report: () => ledger.report(),
   };
 }

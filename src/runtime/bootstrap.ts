@@ -61,10 +61,37 @@ export class UnknownProfile extends Error {
   }
 }
 
+/**
+ * The part of a session lifecycle this layer needs to hear about.
+ *
+ * Structural on purpose, so the runtime does not take a dependency on the
+ * mineflayer binding to know that a reconnect happened. Anything that can
+ * report a new generation satisfies it, including a test double.
+ */
+export interface LifecycleSource {
+  on(
+    listener: (event: {
+      readonly kind: string;
+      readonly generation?: number;
+    }) => void,
+  ): () => void;
+}
+
 export interface AssembleOptions {
   /** Time source for the whole stack. Defaults to the system clock. */
   readonly clock?: Clock;
   readonly log?: Logger;
+  /**
+   * Where reconnect notices come from, when anything is producing them.
+   *
+   * Nothing does yet on the live path. `connect()` does not construct a
+   * `SessionSupervisor`, because the sensor and actuator ports hold the bot
+   * they were built with and cannot rebind to a replacement. A supervisor that
+   * swapped its bot would leave those ports talking to a dead socket while
+   * appearing to have recovered, which is worse than not reconnecting at all.
+   * Rebinding the ports is the prerequisite; this hook is ready for it.
+   */
+  readonly lifecycle?: LifecycleSource;
   /** Reflexes to arbitrate. Defaults to the built-in set. */
   readonly reflexes?: readonly Reflex[];
   /** How often the arbiter is evaluated. */
@@ -270,6 +297,23 @@ function assemble(
 
   const invoker = new SupervisedInvoker(runner, world, act, supervisor, log);
 
+  // A reconnect invalidates knowledge, and only the wiring layer is in a
+  // position to act on it. Entity ids are reassigned by the server, the world
+  // moved on while the socket was down, and every remembered fact is older
+  // than its timestamp claims because the memory horizon was measured against
+  // a session that no longer exists. Forgetting is the honest response:
+  // keeping the entries would leave the agent confidently wrong, which is the
+  // one failure mode the provenance work exists to prevent.
+  const unsubscribe = options.lifecycle?.on((event) => {
+    if (event.kind !== 'reconnected') return;
+    const forgotten = memory.size;
+    memory.clear();
+    log.warn('reconnected, world memory cleared', {
+      generation: event.generation,
+      forgotten,
+    });
+  });
+
   const session: Session = {
     registry,
     invoker,
@@ -280,6 +324,7 @@ function assemble(
     clock,
     reflexes: supervisor,
     close: async (): Promise<void> => {
+      unsubscribe?.();
       supervisor.stop();
       await supervisor.settle();
       await embodiment.disconnect();

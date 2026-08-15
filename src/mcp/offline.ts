@@ -14,6 +14,8 @@ import type { PerceptionReport } from '../perception/ledger.js';
 import type { PerceptionProfile } from '../perception/profile.js';
 import { FAIR_PLAY } from '../perception/profile.js';
 import type { WorldView } from '../perception/world-view.js';
+import type { HeardSound } from '../perception/adapter.js';
+import type { Testimony } from '../perception/testimony.js';
 import type { SkillContext, SkillResult } from '../skills/types.js';
 import { fail } from '../skills/types.js';
 import type { SkillInvoker } from './tools.js';
@@ -67,6 +69,25 @@ export class OfflineWorldView implements WorldView {
 
   recollections(): readonly Observed<BlockInfo>[] {
     return [];
+  }
+
+  /** No body, so nothing was heard. Silence is the honest answer here. */
+  sounds(): readonly Observed<HeardSound>[] {
+    return [];
+  }
+
+  /** No body, so nobody spoke to it. */
+  testimony(): readonly Observed<Testimony>[] {
+    return [];
+  }
+
+  /**
+   * Returned unchanged. With no sightings of anyone, there is no evidence
+   * either way, and inventing a verdict would be worse than declining to give
+   * one.
+   */
+  checkPositionClaim(claim: Testimony, _position: Vec3Like): Testimony {
+    return claim;
   }
 
   /** A true report: nothing was read, because there was nothing to read. */

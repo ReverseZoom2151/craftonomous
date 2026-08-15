@@ -14,6 +14,8 @@ import type { PerceptionReport } from '../../../src/perception/ledger.js';
 import { FAIR_PLAY } from '../../../src/perception/profile.js';
 import type { PerceptionProfile } from '../../../src/perception/profile.js';
 import type { WorldView } from '../../../src/perception/world-view.js';
+import type { HeardSound } from '../../../src/perception/adapter.js';
+import type { Testimony } from '../../../src/perception/testimony.js';
 import { ManualClock } from '../../../src/runtime/clock.js';
 import { silentLogger } from '../../../src/runtime/logger.js';
 import type {
@@ -166,6 +168,20 @@ export class FakeWorld implements WorldView {
 
   recollections(): readonly Observed<BlockInfo>[] {
     return [];
+  }
+
+  // Senses this double does not exercise. Present so it satisfies WorldView;
+  // hearing and testimony have their own dedicated tests.
+  sounds(): readonly Observed<HeardSound>[] {
+    return [];
+  }
+
+  testimony(): readonly Observed<Testimony>[] {
+    return [];
+  }
+
+  checkPositionClaim(claim: Testimony): Testimony {
+    return claim;
   }
 
   report(): PerceptionReport {
