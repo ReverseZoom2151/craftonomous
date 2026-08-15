@@ -4,6 +4,7 @@ import { placeBlock } from './building.js';
 import { attackEntity } from './combat.js';
 import { depositItems, withdrawItems } from './containers.js';
 import { craftItem, smeltItem } from './crafting.js';
+import { explore } from './exploration.js';
 import { consumeItem, dropItem, equipItem } from './inventory.js';
 import { collectBlock, digBlock } from './mining.js';
 import { flee, goToBlock, goToEntity, goToPosition, lookAt } from './movement.js';
@@ -13,6 +14,7 @@ export * from './building.js';
 export * from './combat.js';
 export * from './containers.js';
 export * from './crafting.js';
+export * from './exploration.js';
 export * from './inventory.js';
 export * from './mining.js';
 export * from './movement.js';
@@ -44,6 +46,8 @@ export const CORE_SKILLS: readonly AnySkill[] = [
   erase(goToEntity),
   erase(lookAt),
   erase(flee),
+  // exploration
+  erase(explore),
   // mining
   erase(digBlock),
   erase(collectBlock),
