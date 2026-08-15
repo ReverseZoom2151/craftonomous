@@ -41,7 +41,7 @@
     "prismarine-block": "^1.21.0",
     "prismarine-entity": "^2.5.0",
     "vec3": "^0.1.10",
-    "zod": "^3.23.8",
+    "zod": "^4.4.3",
     "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
