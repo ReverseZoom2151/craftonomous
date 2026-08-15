@@ -44,6 +44,43 @@ export type {
 export { runSuite } from './runner.js';
 
 export type {
+  GoalCheck,
+  GoalParse,
+  GoalPredicate,
+  GoalPredicateOverrides,
+} from './goal-check.js';
+export {
+  ITEM_TAGS,
+  checkPredicate,
+  checkPredicateAgainstItems,
+  checkTaskGoal,
+  describePredicate,
+  normaliseItemName,
+  parseGoal,
+  predicateFor,
+} from './goal-check.js';
+
+export type {
+  LiveAttemptRecord,
+  LiveExecutorDeps,
+  LiveSession,
+  RecordingExecutor,
+} from './live.js';
+export {
+  createLiveExecutor,
+  declaresImpossible,
+  traceDeclaresImpossible,
+} from './live.js';
+
+export type {
+  RecordingSandboxExecutor,
+  SandboxAttemptRecord,
+  SandboxExecutorDeps,
+  SandboxScenario,
+} from './sandbox-executor.js';
+export { createSandboxExecutor } from './sandbox-executor.js';
+
+export type {
   ReliabilityRow,
   ReportInputs,
   RunReport,
