@@ -133,6 +133,10 @@ export interface SessionSupervisorOptions {
   /**
    * How to obtain a fresh bot. Supplied by whoever wired the body, because this
    * file has no business knowing the credentials.
+   *
+   * `connect()` uses this hook to rebind the existing sensor and actuator ports
+   * onto the new session before handing the bot back, so by the time
+   * `reconnected` is emitted every reference held elsewhere is already live.
    */
   readonly rejoin?: () => Promise<MineflayerBotLike>;
   /**
@@ -176,6 +180,7 @@ export class SessionSupervisor {
   #generation = 1;
   #closed = false;
   #reconnecting = false;
+  #unwatch: () => void = () => {};
   readonly #listeners = new Set<LifecycleListener>();
   readonly #policy: ReconnectPolicy;
   readonly #budget: JoinBudget;
@@ -279,6 +284,9 @@ export class SessionSupervisor {
   close(): void {
     if (this.#closed) return;
     this.#closed = true;
+    // Listeners come off whichever bot is current, not the one this supervisor
+    // was constructed with. A closed session watches nothing.
+    this.#unwatch();
     this.#emit({
       kind: 'disconnected',
       at: this.#now(),
@@ -294,10 +302,33 @@ export class SessionSupervisor {
    */
   noteIntentionalDisconnect(): void {
     this.#closed = true;
+    this.#unwatch();
   }
 
+  /**
+   * Watch one bot, after letting go of the last one.
+   *
+   * Moving the listeners rather than adding them matters twice over: a
+   * reconnect would otherwise leak a listener set per generation, and a dead
+   * socket that still fires `end` would drive a second reconnect for a session
+   * that has already been replaced.
+   */
   #watch(bot: MineflayerBotLike): void {
-    bot.on('death', () => {
+    this.#unwatch();
+    const attached: [string, (...args: unknown[]) => void][] = [];
+    const on = (event: string, listener: (...args: unknown[]) => void): void => {
+      bot.on(event, listener);
+      attached.push([event, listener]);
+    };
+    this.#unwatch = () => {
+      for (const [event, listener] of attached) {
+        bot.removeListener?.(event, listener);
+      }
+      attached.length = 0;
+      this.#unwatch = () => {};
+    };
+
+    on('death', () => {
       this.#deaths += 1;
       this.#status = 'dead';
       const at = this.#now();
@@ -313,15 +344,15 @@ export class SessionSupervisor {
       this.#status = 'alive';
       this.#emit({ kind: 'respawned', at: this.#now() });
     };
-    bot.on('respawn', alive);
-    bot.on('spawn', alive);
+    on('respawn', alive);
+    on('spawn', alive);
 
-    bot.on('end', (...args: unknown[]) => {
+    on('end', (...args: unknown[]) => {
       void this.#onEnd(
         args[0] === undefined ? 'connection ended' : describe(args[0]),
       );
     });
-    bot.on('kicked', (...args: unknown[]) => {
+    on('kicked', (...args: unknown[]) => {
       void this.#onEnd(`kicked: ${describe(args[0])}`);
     });
   }
@@ -381,6 +412,18 @@ export class SessionSupervisor {
         this.#budget.record(this.#now());
         try {
           const bot = await rejoin();
+          if (this.#closed) {
+            // Somebody closed the session while this join was in flight. The
+            // body that just arrived is not wanted, and announcing a generation
+            // for it would tell the wiring layer to prepare for a session that
+            // is already over.
+            try {
+              bot.quit('closed');
+            } catch {
+              // Already gone.
+            }
+            return;
+          }
           this.#bot = bot;
           this.#generation += 1;
           this.#status = 'alive';

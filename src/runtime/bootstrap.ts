@@ -84,14 +84,12 @@ export interface AssembleOptions {
   readonly clock?: Clock;
   readonly log?: Logger;
   /**
-   * Where reconnect notices come from, when anything is producing them.
+   * Where reconnect notices come from.
    *
-   * Nothing does yet on the live path. `connect()` does not construct a
-   * `SessionSupervisor`, because the sensor and actuator ports hold the bot
-   * they were built with and cannot rebind to a replacement. A supervisor that
-   * swapped its bot would leave those ports talking to a dead socket while
-   * appearing to have recovered, which is worse than not reconnecting at all.
-   * Rebinding the ports is the prerequisite; this hook is ready for it.
+   * On the live path this is `MineflayerEmbodiment.lifecycle`, wired by
+   * `createSession`. The ports rebind onto the replacement bot rather than
+   * being swapped out, so every reference held before the drop stays valid and
+   * this layer only has to react to the news, not re-resolve anything.
    */
   readonly lifecycle?: LifecycleSource;
   /** Reflexes to arbitrate. Defaults to the built-in set. */
@@ -436,9 +434,30 @@ export async function createSession(
     logger: log,
   });
 
-  const { session, persistence } = assemble(embodiment, profile, options);
+  // Subscribe to the body's own lifecycle unless the caller brought one.
+  // `EmbodimentPort` does not declare it, because a fake body has no sessions
+  // to lose, so this is a duck-typed read rather than a cast.
+  const lifecycle = options.lifecycle ?? lifecycleOf(embodiment);
+
+  const { session, persistence } = assemble(embodiment, profile, {
+    ...options,
+    ...(lifecycle === undefined ? {} : { lifecycle }),
+  });
   await restoreBeforeUse(session, persistence);
   return session;
+}
+
+/** A body's reconnect notices, when it has any. */
+function lifecycleOf(embodiment: EmbodimentPort): LifecycleSource | undefined {
+  const candidate = (embodiment as { lifecycle?: unknown }).lifecycle;
+  if (
+    typeof candidate === 'object' &&
+    candidate !== null &&
+    typeof (candidate as { on?: unknown }).on === 'function'
+  ) {
+    return candidate as LifecycleSource;
+  }
+  return undefined;
 }
 
 /**

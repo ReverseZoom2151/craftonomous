@@ -1,8 +1,10 @@
 export type {
   ConnectOptions,
+  JoinedSession,
   MineflayerBotLike,
   PathfinderGoals,
   ReconnectPolicy,
+  SuperviseOptions,
   Vec3Factory,
 } from './binding.js';
 export {
@@ -16,6 +18,7 @@ export {
   backoffDelay,
   blockIsSolid,
   connect,
+  supervise,
 } from './binding.js';
 
 export type {
