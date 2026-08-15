@@ -136,14 +136,12 @@ export function failureResult(
  *
  * ## On the failure kind
  *
- * `FailureKind` has no member for "you are going too fast", and `FailureKind`
- * lives in `src/skills/types.ts`, which this layer does not own. Rather than
- * invent one there, the refusal is reported as `unknown`, the kind whose
- * documented meaning is "everything else", with `retryable` forced to true.
- * That flag is the part an agent actually branches on, and a rate limit is the
- * most retryable failure there is: the only thing that has to change is the
- * clock. The message carries the specifics. If a `rate-limited` kind is ever
- * added to `FailureKind`, this is the single call site that should adopt it.
+ * Reported as `rate-limited`, which is distinct from `timeout` on purpose:
+ * a timeout means the work started and overran, whereas nothing was attempted
+ * here. The agent should wait rather than change its plan. It is in
+ * `RETRYABLE_FAILURES`, since a rate limit is the most retryable failure there
+ * is, given the only thing that has to change is the clock. The message
+ * carries the interval.
  */
 export function rateLimitedResult(
   skill: string,

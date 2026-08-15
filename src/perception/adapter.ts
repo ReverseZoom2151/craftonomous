@@ -327,9 +327,6 @@ export class PerceptionAdapter implements WorldView {
    * Each result carries a bearing and a distance band, never a coordinate.
    * See {@link HeardSound} for why that is not a limitation to be worked
    * around.
-   *
-   * Not on {@link WorldView}: that interface predates hearing having a
-   * producer, and this adapter does not own it.
    */
   sounds(): readonly Observed<HeardSound>[] {
     const drained = this.#sensors.drainSounds?.() ?? [];
@@ -363,8 +360,6 @@ export class PerceptionAdapter implements WorldView {
    * believing them, and a claim the agent refused to receive cannot be weighed
    * later. What arrives is tagged `testimony` and marked unverified, and it
    * stays `testimony` however well it later checks out.
-   *
-   * Not on {@link WorldView}, for the same reason as {@link sounds}.
    */
   testimony(): readonly Observed<Testimony>[] {
     const drained = this.#sensors.drainChat?.() ?? [];
