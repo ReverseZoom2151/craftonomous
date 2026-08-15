@@ -88,6 +88,40 @@ Out-of-range sightings return `undefined`, meaning *not known*, which is
 different from *not there*. Neither a denied read nor an out-of-range one is
 counted, because neither happened.
 
+### Line of sight
+
+Occlusion is computed, not asserted. `isOccluded` walks the voxel grid between
+two points using an Amanatides and Woo style DDA, stepping one block at a time
+along whichever axis reaches its next voxel plane soonest, and reports whether
+any solid block stands on the path. Both the mineflayer binding and the
+in-memory fake share that traversal and differ only in how they answer "is this
+block solid", so a test and a live run disagree about visibility only when the
+world genuinely differs.
+
+Two decisions inside it are worth knowing. Both endpoint voxels are excluded
+from the occlusion test, so an agent is not blinded by the block it is standing
+in, nor by the block it is looking at; without that exclusion an ore would hide
+itself at the exact moment it came into view. And traversal is capped at a fixed
+number of steps (`MAX_TRAVERSAL_STEPS`, currently 4096), with non-finite
+endpoints refused before any stepping happens, so a NaN arriving from the
+substrate or a ray asked to cross the whole world degrades into "not occluded"
+rather than hanging the tick that perception runs on.
+
+### Memory and recall
+
+When a block cannot be seen right now, the adapter falls back to what it
+remembers, and returns it tagged `memory` carrying the age of the recollection
+in milliseconds. A caller therefore cannot mistake a five-minute-old belief for
+a present-tense sighting. Memory is bounded: past its cap it evicts the
+oldest-sensed entry first, on the grounds that the beliefs worth shedding are
+the ones least likely to still be true rather than the ones least recently
+asked about. Anything past the profile's horizon is dropped instead of returned.
+
+Recalls are recorded on the ledger directly rather than through `gate.sense`.
+That is deliberate. `sense` stamps the present time, which would erase exactly
+the staleness the memory tag exists to convey and quietly promote an old belief
+to a fresh one at the moment of reading.
+
 ### The ledger
 
 `PerceptionLedger` tallies every read by provenance and reports:
@@ -103,10 +137,15 @@ described.
 
 ## What this does not solve
 
-Line-of-sight is enforced against the profile, but the raycast that determines
-occlusion is only as good as the implementation behind it, and that is not
-built yet. Memory decay is a fixed horizon rather than a model of forgetting.
-Testimony is not yet verified against what the speaker could actually have
-known, so a lying agent is currently taken at its word.
+Occlusion is computed rather than assumed, so what remains open is elsewhere.
+
+Memory decay is a fixed horizon rather than a model of forgetting: a
+recollection is exact right up until the moment it is deleted, which is not how
+knowing things works. Testimony is not verified against what the speaker could
+actually have known, so a lying agent is taken at its word. And `hearing` exists
+in the provenance contract and in the gate, which will admit a sound within
+range, but no sensor currently produces sound events, so nothing in a run is
+ever tagged with it. The hearing ranges in the profile table are a declaration
+still waiting for something to declare against.
 
 These are tracked in the [roadmap](ROADMAP.md).
