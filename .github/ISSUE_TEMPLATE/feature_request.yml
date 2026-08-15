@@ -1,0 +1,77 @@
+name: Feature request
+description: Propose a capability, skill, or change in direction.
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check [docs/ROADMAP.md](../blob/main/docs/ROADMAP.md) first — the idea
+        may already be planned.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: >
+        What can you not do today? Describe the situation, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What would you add or change, and how would it be used?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Embodiment / world port
+        - Perception (gate, ledger, profiles)
+        - Skills and reliability tracking
+        - MCP server surface
+        - CLI
+        - Evaluation and benchmarking
+        - Documentation
+        - Tooling and CI
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: perception
+    attributes:
+      label: Effect on the perception budget
+      description: >
+        Does this let the agent know anything a fair-play human player could
+        not? If so, say what, and which profiles should gate it. Answer "none"
+        if the change is purely mechanical.
+    validations:
+      required: true
+
+  - type: textarea
+    id: prior_art
+    attributes:
+      label: Prior art
+      description: >
+        Have other projects solved this? Name and link them, and say what you
+        would take conceptually. Reference implementations may be read and
+        cited, never copied — see CONTRIBUTING.md.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else did you weigh, and why is this better?
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and the roadmap for a duplicate.
+          required: true

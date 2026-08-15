@@ -1,0 +1,8 @@
+# Prior-art corpus: read and cited, never formatted or copied.
+reference_repos/
+
+node_modules/
+dist/
+coverage/
+package-lock.json
+*.tsbuildinfo
