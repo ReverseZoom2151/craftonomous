@@ -331,7 +331,7 @@ describe('rule policy end to end', () => {
     world.blocks = [obs(block('oak_log', { x: 1, y: 64, z: 1 }), 'sight', 0)];
 
     const invoker = new FakeInvoker({
-      collect_block: () => {
+      collectBlock: () => {
         world.items = [{ name: 'oak_log', count: 2 }];
         world.blocks = [];
         return { ok: true, value: { collected: 2 }, durationMs: 20 };
@@ -347,12 +347,13 @@ describe('rule policy end to end', () => {
       clock,
       goals,
       maxSteps: 8,
-      digest: { blockNames: ['oak_log'] },
+      // No blockNames configured on purpose: the loop must derive them from
+      // the active goal, or the policy sees an empty world and gives up.
     });
 
     const trace = await loop.run();
 
-    expect(invoker.calls.map((c) => c.name)).toEqual(['collect_block']);
+    expect(invoker.calls.map((c) => c.name)).toEqual(['collectBlock']);
     expect(trace.stoppedBecause).toBe('done');
     expect(trace.reason).toContain('goal satisfied');
     expect(trace.steps).toHaveLength(2);

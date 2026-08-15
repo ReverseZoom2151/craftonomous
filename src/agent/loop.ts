@@ -16,7 +16,11 @@ import type {
   SkillInvoker,
   StepOutcome,
 } from './policy.js';
-import { describeDecision, describeOutcome } from './policy.js';
+import {
+  describeDecision,
+  describeOutcome,
+  impliedBlockNames,
+} from './policy.js';
 
 /**
  * The reference loop: observe, decide, act, record, repeat.
@@ -106,11 +110,29 @@ export class AgentLoop {
     return this.#steps;
   }
 
+  /**
+   * Digest options for the goal currently on top of the stack.
+   *
+   * `WorldView.findBlocks` has no "everything" mode by design, so a digest
+   * only lists blocks it was told to look for. Configured names are therefore
+   * merged with names implied by the active goal: without that, an agent
+   * pursuing "gather 3 oak_log" would be handed a digest containing no logs
+   * and would conclude there were none, which is a fabricated observation
+   * rather than an honest absence.
+   */
+  #digestOptions(goal: Goal | undefined): DigestOptions {
+    const configured = this.#o.digest ?? {};
+    const implied = goal === undefined ? undefined : impliedBlockNames(goal);
+    if (implied === undefined || implied.length === 0) return configured;
+    const names = new Set([...(configured.blockNames ?? []), ...implied]);
+    return { ...configured, blockNames: [...names] };
+  }
+
   observe(): ObservationDigest {
     return buildDigest(
       this.#o.world,
       this.#o.clock.now(),
-      this.#o.digest ?? {},
+      this.#digestOptions(this.goals.current()),
     );
   }
 
@@ -136,7 +158,7 @@ export class AgentLoop {
       const digest = buildDigest(
         this.#o.world,
         stepStarted,
-        this.#o.digest ?? {},
+        this.#digestOptions(this.goals.current()),
       );
       if (this.#o.recordDigestInMemory === true) {
         this.memory.append('observation', digest.text);

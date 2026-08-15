@@ -125,7 +125,7 @@ describe('RulePolicy', () => {
 
     expect(decision).toEqual({
       kind: 'skill',
-      name: 'eat',
+      name: 'consumeItem',
       input: { item: 'bread' },
     });
   });
@@ -181,19 +181,17 @@ describe('RulePolicy', () => {
       }),
     );
 
+    // collectBlock runs its own find-approach-dig, so it takes a name and a
+    // count rather than a coordinate. The sighted-over-remembered preference
+    // decides whether to act at all, not what is passed.
     expect(decision).toEqual({
       kind: 'skill',
-      name: 'collect_block',
-      input: {
-        name: 'iron_ore',
-        position: { x: 1, y: 40, z: 1 },
-        count: 2,
-        remembered: false,
-      },
+      name: 'collectBlock',
+      input: { name: 'iron_ore', count: 2 },
     });
   });
 
-  it('flags a remembered target as remembered when it is all there is', async () => {
+  it('still collects when only a remembered target is known', async () => {
     const decision = await policy.decide(
       input({
         goal: 'gather 1 iron_ore',
@@ -205,10 +203,14 @@ describe('RulePolicy', () => {
       }),
     );
 
-    expect(decision.kind).toBe('skill');
-    if (decision.kind === 'skill') {
-      expect((decision.input as { remembered: boolean }).remembered).toBe(true);
-    }
+    // A recollection is worth acting on: the ore may still be there, and the
+    // skill reports world-changed if it is not. Giving up because the only
+    // lead is remembered would waste knowledge the agent paid to acquire.
+    expect(decision).toEqual({
+      kind: 'skill',
+      name: 'collectBlock',
+      input: { name: 'iron_ore', count: 1 },
+    });
   });
 
   it('stops once the goal is satisfied by what it is carrying', async () => {

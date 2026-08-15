@@ -198,9 +198,17 @@ export interface RuleSkillNames {
   readonly flee: string;
 }
 
+/**
+ * Names as the core skill library actually registers them.
+ *
+ * `explore` has no counterpart in the core library yet. It is named here so
+ * that a deployment providing its own exploration skill can wire it in, and
+ * the catalogue check in `#available` skips the branch until something
+ * registers under that name.
+ */
 export const DEFAULT_RULE_SKILLS: RuleSkillNames = {
-  eat: 'eat',
-  collect: 'collect_block',
+  eat: 'consumeItem',
+  collect: 'collectBlock',
   explore: 'explore',
   flee: 'flee',
 };
@@ -247,6 +255,19 @@ export function parseGatherGoal(description: string): GatherGoal | undefined {
   const raw = m?.[1];
   const count = raw === undefined ? 1 : Number.parseInt(raw, 10);
   return { item: item.toLowerCase(), count: Number.isFinite(count) && count > 0 ? count : 1 };
+}
+
+/**
+ * Block names a goal implies are worth looking for.
+ *
+ * `WorldView.findBlocks` has no "everything" mode, so a digest lists only what
+ * it was asked about. The loop merges these with any configured names, so an
+ * agent pursuing "gather 3 oak_log" is not handed a digest with no logs in it
+ * and left to conclude there are none.
+ */
+export function impliedBlockNames(goal: Goal): readonly string[] {
+  const gather = parseGatherGoal(goal.description);
+  return gather === undefined ? [] : [gather.item];
 }
 
 /**
@@ -310,9 +331,11 @@ export class RulePolicy implements Policy {
       this.#available(input, this.#skills.flee) &&
       !this.#justFailed(input, this.#skills.flee)
     ) {
+      // The skill takes exactly one of `position` or `entityName`. Give it the
+      // position: the threat has already been located, and naming it would
+      // make the skill re-find an entity that may have moved since.
       return skillDecision(this.#skills.flee, {
-        from: threat.value.position,
-        entityId: threat.value.id,
+        position: threat.value.position,
       });
     }
 
@@ -352,11 +375,12 @@ export class RulePolicy implements Policy {
       ) ?? input.digest.blocks.find((b) => b.value.name === gather.item);
 
     if (target && this.#available(input, this.#skills.collect)) {
+      // collectBlock does its own find-approach-dig, so it takes a name and a
+      // count rather than a coordinate. The target above is only used to
+      // decide whether anything of that name is known at all.
       return skillDecision(this.#skills.collect, {
         name: gather.item,
-        position: target.value.position,
         count: gather.count - held,
-        remembered: target.provenance === 'memory',
       });
     }
 
