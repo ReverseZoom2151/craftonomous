@@ -42,6 +42,8 @@ import { systemClock } from '../runtime/clock.js';
 import type { Logger } from '../runtime/logger.js';
 import { silentLogger } from '../runtime/logger.js';
 import { offlineActuators } from './offline.js';
+import type { RateLimitSetting } from './rate-limit.js';
+import { RateLimiter } from './rate-limit.js';
 import { ResourceCatalog, UnknownResource } from './resources.js';
 import type { SkillContextFactory, SkillInvoker } from './tools.js';
 import { ToolDispatcher } from './tools.js';
@@ -88,6 +90,16 @@ export interface CreateServerOptions {
   readonly act?: ActuatorPort;
   readonly clock?: Clock;
   readonly log?: Logger;
+  /**
+   * Tool call budgets. On by default with the limits documented in
+   * `rate-limit.ts`; pass a partial {@link RateLimitSetting} to override either
+   * budget, or the literal `'off'` to serve with none.
+   *
+   * Disabling has to be written down. The limits are there to stop a looping
+   * agent getting the body kicked or the account throttled, and that is not a
+   * protection anyone should lose by forgetting a field.
+   */
+  readonly rateLimit?: RateLimitSetting;
 }
 
 function contextFactory(options: CreateServerOptions): SkillContextFactory {
@@ -101,6 +113,21 @@ function contextFactory(options: CreateServerOptions): SkillContextFactory {
     clock,
     log,
     signal,
+  });
+}
+
+/**
+ * The limiter a server runs with, or `undefined` when explicitly switched off.
+ *
+ * The limiter shares the server's clock, so a caller replaying a run with a
+ * fake clock gets the same refusals in the same places.
+ */
+function limiterFor(options: CreateServerOptions): RateLimiter | undefined {
+  const setting = options.rateLimit ?? {};
+  if (setting === 'off') return undefined;
+  return new RateLimiter({
+    ...setting,
+    clock: setting.clock ?? options.clock ?? systemClock,
   });
 }
 
@@ -123,6 +150,7 @@ export function createServer(options: CreateServerOptions): CraftonomousServer {
     registry: options.registry,
     invoker: options.invoker,
     context: contextFactory(options),
+    limiter: limiterFor(options),
   });
 
   const resources = new ResourceCatalog({

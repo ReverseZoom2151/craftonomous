@@ -27,6 +27,13 @@ export type FailureKind =
   | 'invalid-input'
   /** The perception profile forbade a read this skill required. */
   | 'not-permitted'
+  /**
+   * Refused by a rate limiter before the skill ran.
+   *
+   * Distinct from `timeout`, which means the work started and overran. Nothing
+   * was attempted here, so the agent should wait rather than change its plan.
+   */
+  | 'rate-limited'
   /** Everything else. Should shrink over time. */
   | 'unknown';
 
@@ -35,6 +42,7 @@ export const RETRYABLE_FAILURES: readonly FailureKind[] = [
   'timeout',
   'unreachable',
   'world-changed',
+  'rate-limited',
 ];
 
 export function isRetryable(kind: FailureKind): boolean {

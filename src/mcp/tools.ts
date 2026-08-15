@@ -7,6 +7,8 @@ import type {
   SkillResult,
 } from '../skills/types.js';
 import { isRetryable } from '../skills/types.js';
+import type { RateLimitRefusal, RateLimiter } from './rate-limit.js';
+import { describeRefusal } from './rate-limit.js';
 import type { SkillToolDefinition } from './schema.js';
 import { describeSkillTool, unwrapArguments } from './schema.js';
 
@@ -66,6 +68,12 @@ export interface ToolFailurePayload {
   readonly retryable: boolean;
   readonly message: string;
   readonly durationMs: number;
+  /**
+   * Present only when the failure carries a definite time to try again, which
+   * today means a rate limit refusal. Optional rather than always present so
+   * that every other failure keeps the payload shape it already had.
+   */
+  readonly retryAfterMs?: number;
 }
 
 export type ToolPayload = ToolSuccessPayload | ToolFailurePayload;
@@ -88,6 +96,15 @@ export function successResult(
   return textResult(payload, JSON.stringify(payload, null, 2));
 }
 
+function renderFailure(payload: ToolFailurePayload): CallToolResult {
+  const human =
+    `${payload.skill} failed: ${payload.kind} ` +
+    `(${payload.retryable ? 'retryable' : 'not retryable'}): ` +
+    `${payload.message}\n` +
+    JSON.stringify(payload, null, 2);
+  return textResult(payload, human);
+}
+
 /** Render a failure as an MCP error result that names its kind. */
 export function failureResult(
   skill: string,
@@ -96,19 +113,51 @@ export function failureResult(
   durationMs: number,
   retryable: boolean = isRetryable(kind),
 ): CallToolResult {
-  const payload: ToolFailurePayload = {
+  return renderFailure({
     ok: false,
     skill,
     kind,
     retryable,
     message,
     durationMs,
-  };
-  const human =
-    `${skill} failed: ${kind} ` +
-    `(${retryable ? 'retryable' : 'not retryable'}): ${message}\n` +
-    JSON.stringify(payload, null, 2);
-  return textResult(payload, human);
+  });
+}
+
+/**
+ * Render a rate limit refusal as a tool *execution* error.
+ *
+ * `isError: true` on an ordinary result, never an {@link McpError}. The MCP
+ * specification is explicit that execution errors are the ones a client feeds
+ * back to the model, and being refused for going too fast is exactly the kind
+ * of thing a model can correct on its own: it can wait the stated interval, or
+ * do something else meanwhile. Raised as a JSON-RPC error it would surface as
+ * a transport-level fault, and most clients would either retry it blindly or
+ * tear down the session, both of which make things worse.
+ *
+ * ## On the failure kind
+ *
+ * `FailureKind` has no member for "you are going too fast", and `FailureKind`
+ * lives in `src/skills/types.ts`, which this layer does not own. Rather than
+ * invent one there, the refusal is reported as `unknown`, the kind whose
+ * documented meaning is "everything else", with `retryable` forced to true.
+ * That flag is the part an agent actually branches on, and a rate limit is the
+ * most retryable failure there is: the only thing that has to change is the
+ * clock. The message carries the specifics. If a `rate-limited` kind is ever
+ * added to `FailureKind`, this is the single call site that should adopt it.
+ */
+export function rateLimitedResult(
+  skill: string,
+  refusal: RateLimitRefusal,
+): CallToolResult {
+  return renderFailure({
+    ok: false,
+    skill,
+    kind: 'rate-limited',
+    retryable: true,
+    message: describeRefusal(refusal),
+    durationMs: 0,
+    retryAfterMs: refusal.retryAfterMs,
+  });
 }
 
 /** Map a skill result onto an MCP tool result. */
@@ -145,6 +194,12 @@ export interface ToolDispatcherOptions {
   readonly registry: SkillRegistry;
   readonly invoker: SkillInvoker;
   readonly context: SkillContextFactory;
+  /**
+   * Call budget enforced in front of every invocation. Omitted means no
+   * budget, which is right for a dispatcher constructed directly in a test but
+   * not for a served body; `createServer` supplies one by default.
+   */
+  readonly limiter?: RateLimiter | undefined;
 }
 
 /**
@@ -158,12 +213,14 @@ export class ToolDispatcher {
   readonly #registry: SkillRegistry;
   readonly #invoker: SkillInvoker;
   readonly #context: SkillContextFactory;
+  readonly #limiter: RateLimiter | undefined;
   readonly #definitions = new Map<string, SkillToolDefinition>();
 
   constructor(options: ToolDispatcherOptions) {
     this.#registry = options.registry;
     this.#invoker = options.invoker;
     this.#context = options.context;
+    this.#limiter = options.limiter;
   }
 
   /** Tool definitions for the current registry contents, sorted by name. */
@@ -193,9 +250,9 @@ export class ToolDispatcher {
    * read the kind and decide. An unknown tool throws {@link McpError} instead:
    * that is a protocol error, not something that happened in the world.
    *
-   * Rate limiting would sit here, in front of `invoker.run`: one place, on
-   * the only path from an agent to an actuator. Nothing enforces a call budget
-   * yet; a hostile or looping client can invoke as fast as the body responds.
+   * The call budget is enforced here, in front of `invoker.run`: one place, on
+   * the only path from an agent to an actuator. A refusal is a result, not a
+   * protocol error, for the reasons set out on {@link rateLimitedResult}.
    */
   async call(
     name: string,
@@ -208,6 +265,15 @@ export class ToolDispatcher {
         ErrorCode.InvalidParams,
         `no skill named "${name}" is registered; call tools/list for what this body can do`,
       );
+    }
+
+    // Checked after the name is resolved and before anything is validated or
+    // run. Ahead of the name check, a typo would burn budget the agent could
+    // not have known it was spending; behind the invoker, the packets we are
+    // trying not to send would already be gone.
+    const decision = this.#limiter?.check(name);
+    if (decision && !decision.allowed) {
+      return rateLimitedResult(name, decision.refusal);
     }
 
     // Input validation itself belongs to the skill runner, which checks the

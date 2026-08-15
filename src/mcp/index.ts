@@ -26,9 +26,25 @@ export {
   ToolDispatcher,
   failureResult,
   listTools,
+  rateLimitedResult,
   successResult,
   toCallToolResult,
 } from './tools.js';
+
+export type {
+  RateLimitDecision,
+  RateLimitRefusal,
+  RateLimitRule,
+  RateLimitScope,
+  RateLimitSetting,
+  RateLimiterOptions,
+} from './rate-limit.js';
+export {
+  DEFAULT_GLOBAL_RULE,
+  DEFAULT_PER_TOOL_RULE,
+  RateLimiter,
+  describeRefusal,
+} from './rate-limit.js';
 
 export type {
   ObservedJson,
